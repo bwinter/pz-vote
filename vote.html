@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PZ Vote — Server Settings</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1e1e1e;--bg2:#252526;--bg3:#2a2d2e;--bg4:#1a1a1a;
+  --border:#333;--border2:#2a2a2a;
+  --text:#cccccc;--dim:#6e7681;--key:#9cdcfe;--group:#c586c0;
+  --file:#569cd6;--avg:#dcdcaa;
+  --p0:#4f9ede;--p1:#c58bc0;--p2:#4ec9b0;
+  --p0d:#1f4a70;--p1d:#5a3860;--p2d:#1b5a50;
+  --accent:#007acc;
+  --ind:16px;--icon-w:20px;--key-w:220px;--val-w:80px;--avg-w:76px;
+  --key-offset:288px; /* 3×16 + 20 + 220 */
+  --row-h:26px;
+  --toolbar-h:44px;--header-h:28px;
+}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  font-size:13px;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:auto;
+}
+/* ── Toolbar ─────────────────────────────────────────────── */
+#toolbar{
+  display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:300;min-height:var(--toolbar-h);
+  flex-wrap:nowrap;
+}
+.btn{
+  padding:3px 10px;background:var(--accent);color:#fff;border:none;
+  border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;
+  flex-shrink:0;font-family:inherit;letter-spacing:.02em;
+}
+.btn:hover{filter:brightness(1.15);}
+.btn:active{filter:brightness(0.9);}
+.btn-save{background:#2d7a2d;}
+.btn-reset{background:#555;font-size:11px;}
+#folder-path{
+  font-size:11px;color:var(--dim);font-family:'Consolas','Cascadia Code',monospace;
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:40px;
+}
+.player-inputs{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.lbl{font-size:11px;color:var(--dim);white-space:nowrap;}
+.p-input{
+  width:84px;padding:2px 5px;background:#2d2d2d;
+  border:1px solid #555;border-bottom:2px solid #555;
+  color:var(--text);border-radius:2px;font-size:12px;
+  font-family:'Consolas','Cascadia Code',monospace;
+}
+.p-input:focus{outline:none;border-color:var(--accent);border-bottom-color:var(--accent);}
+#p0{border-bottom-color:var(--p0);}
+#p1{border-bottom-color:var(--p1);}
+#p2{border-bottom-color:var(--p2);}
+/* ── Column header ───────────────────────────────────────── */
+#col-header{
+  display:flex;align-items:center;
+  background:var(--bg4);border-bottom:1px solid var(--border);
+  position:sticky;top:var(--toolbar-h);z-index:290;
+  font-size:11px;min-height:var(--header-h);
+  min-width:900px;
+}
+.ch-spacer{width:var(--key-offset);flex-shrink:0;}
+.ch-p{flex:1;min-width:0;text-align:center;font-family:'Consolas','Cascadia Code',monospace;font-weight:700;letter-spacing:.04em;padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#ch0{color:var(--p0);}
+#ch1{color:var(--p1);}
+#ch2{color:var(--p2);}
+.ch-avg{width:var(--avg-w);flex-shrink:0;text-align:right;color:var(--avg);padding-right:12px;text-transform:uppercase;letter-spacing:.06em;font-size:10px;}
+/* ── Tree ────────────────────────────────────────────────── */
+#tree{min-width:900px;}
+.t-children.collapsed{display:none;}
+/* ── Shared row base ─────────────────────────────────────── */
+.t-row,.s-row{
+  display:flex;align-items:center;min-height:var(--row-h);
+  padding:1px 0;cursor:default;
+}
+.t-row{cursor:pointer;}
+.t-row:hover,.s-row:hover{background:var(--bg3);}
+.t-indent{width:var(--ind);flex-shrink:0;}
+.t-icon{
+  width:var(--icon-w);flex-shrink:0;font-size:9px;
+  color:var(--dim);text-align:center;line-height:1;
+  user-select:none;
+}
+/* ── File / Group labels ─────────────────────────────────── */
+.lbl-file{
+  font-family:'Consolas','Cascadia Code',monospace;color:var(--file);
+  font-size:13px;font-weight:700;padding:0 4px;user-select:none;
+}
+.lbl-group{
+  font-family:'Consolas','Cascadia Code',monospace;color:var(--group);
+  font-size:12px;padding:0 4px;user-select:none;
+}
+/* ── Setting row ─────────────────────────────────────────── */
+.s-key{
+  width:var(--key-w);flex-shrink:0;
+  font-family:'Consolas','Cascadia Code',monospace;
+  font-size:12px;color:var(--key);padding:0 4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sliders-wrap{
+  display:flex;flex:1;align-items:center;min-width:0;
+}
+.p-col{
+  display:flex;align-items:center;flex:1;min-width:120px;
+  padding:0 5px;gap:4px;
+}
+.p-col:nth-child(n){border-left:1px solid var(--border2);}
+.p-val{
+  width:var(--val-w);flex-shrink:0;
+  font-family:'Consolas','Cascadia Code',monospace;
+  font-size:11px;text-align:right;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.p-col:nth-child(1) .p-val{color:var(--p0);}
+.p-col:nth-child(2) .p-val{color:var(--p1);}
+.p-col:nth-child(3) .p-val{color:var(--p2);}
+/* ── Sliders ─────────────────────────────────────────────── */
+input[type=range]{
+  flex:1;min-width:40px;height:3px;
+  -webkit-appearance:none;appearance:none;
+  background:#3c3c3c;border-radius:2px;cursor:pointer;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:9px;height:9px;
+  border-radius:50%;cursor:pointer;transition:transform .1s,filter .1s;
+}
+input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
+.p-col:nth-child(1) input[type=range]::-webkit-slider-thumb{background:var(--p0);}
+.p-col:nth-child(2) input[type=range]::-webkit-slider-thumb{background:var(--p1);}
+.p-col:nth-child(3) input[type=range]::-webkit-slider-thumb{background:var(--p2);}
+.p-col:nth-child(1) input[type=range]{background:linear-gradient(var(--p0d),var(--p0d)) no-repeat 0/0% 100%,#3c3c3c;}
+.p-col:nth-child(2) input[type=range]{background:linear-gradient(var(--p1d),var(--p1d)) no-repeat 0/0% 100%,#3c3c3c;}
+.p-col:nth-child(3) input[type=range]{background:linear-gradient(var(--p2d),var(--p2d)) no-repeat 0/0% 100%,#3c3c3c;}
+/* ── Average ─────────────────────────────────────────────── */
+.s-avg{
+  width:var(--avg-w);flex-shrink:0;
+  font-family:'Consolas','Cascadia Code',monospace;
+  font-size:11px;color:var(--avg);
+  text-align:right;padding-right:12px;white-space:nowrap;
+}
+/* ── Status / misc ───────────────────────────────────────── */
+#status{font-size:11px;color:var(--dim);padding:4px 10px;background:var(--bg2);border-bottom:1px solid var(--border2);}
+.no-api{padding:24px;color:#e05252;font-family:monospace;line-height:1.7;}
+.save-ok{color:#4ec9b0 !important;}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <button class="btn" id="btn-open">&#128194; Open Folder</button>
+  <span id="folder-path">No folder open — click Open Folder to load or create settings files</span>
+  <div class="player-inputs">
+    <span class="lbl">Players:</span>
+    <input class="p-input" id="p0" value="Diesel">
+    <input class="p-input" id="p1" value="GunFox">
+    <input class="p-input" id="p2" value="SnowCrash">
+  </div>
+  <button class="btn btn-reset" id="btn-reset">&#8635; Reset</button>
+  <button class="btn btn-save" id="btn-save">&#128190; Save</button>
+</div>
+<div id="col-header">
+  <div class="ch-spacer"></div>
+  <div class="ch-p" id="ch0">Diesel</div>
+  <div class="ch-p" id="ch1">GunFox</div>
+  <div class="ch-p" id="ch2">SnowCrash</div>
+  <div class="ch-avg">avg</div>
+</div>
+<div id="status">Open a folder containing your PZ settings files, or create a new folder to start fresh.</div>
+<div id="tree"></div>
+
+<script>
+// =====================================================================
+// SCHEMA  — every setting: key, display label, min, max, step, default
+//            optional: bool (0/1→false/true), enum (label array, 1-indexed from min)
+// =====================================================================
+const SCHEMA = [
+{
+  id:'ini', label:'server.ini', ext:'ini',
+  groups:[
+    { id:'pvp', label:'PVP & Safety', settings:[
+      { key:'PVP',          label:'PVP enabled',             min:0,max:1,step:1,def:1,bool:true},
+      { key:'SafetySystem', label:'Safety system (opt-in)',   min:0,max:1,step:1,def:1,bool:true},
+    ]},
+    { id:'sleep', label:'Sleep', settings:[
+      { key:'SleepAllowed', label:'Sleep allowed',  min:0,max:1,step:1,def:0,bool:true},
+      { key:'SleepNeeded',  label:'Sleep needed',   min:0,max:1,step:1,def:0,bool:true},
+    ]},
+    { id:'safe', label:'Safehouses', settings:[
+      { key:'PlayerSafehouse',             label:'Player safehouses',      min:0,max:1,step:1,def:0,bool:true},
+      { key:'SafehouseDaySurvivedToClaim', label:'Days to claim safehouse',min:0,max:30,step:1,def:3},
+    ]},
+    { id:'srv', label:'Server', settings:[
+      { key:'MaxPlayers',          label:'Max players',                   min:1,max:100,step:1,def:32},
+      { key:'PauseEmpty',          label:'Pause when empty',              min:0,max:1,step:1,def:1,bool:true},
+      { key:'HoursForLootRespawn', label:'Loot respawn hours (0=never)',  min:0,max:8760,step:1,def:0},
+    ]},
+  ]
+},
+{
+  id:'sandbox', label:'SandboxVars.lua', ext:'lua',
+  groups:[
+    { id:'world', label:'World Timeline', settings:[
+      { key:'DayLength',        label:'Day length',              min:1,max:25,step:1,def:3,
+        enum:['15 min','30 min','1 hr','2 hr','3 hr','4 hr','5 hr','6 hr','7 hr','8 hr','9 hr','10 hr','11 hr','12 hr','13 hr','14 hr','15 hr','16 hr','17 hr','18 hr','19 hr','20 hr','21 hr','22 hr','23 hr']},
+      { key:'StartMonth',       label:'Start month',             min:1,max:12,step:1,def:7,
+        enum:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']},
+      { key:'StartDay',         label:'Start day',               min:1,max:28,step:1,def:9},
+      { key:'StartTime',        label:'Start time',              min:1,max:8,step:1,def:2,
+        enum:['7 AM','9 AM','12 PM','2 PM','5 PM','9 PM','12 AM','2 AM']},
+      { key:'WaterShut',        label:'Water shutoff',           min:1,max:7,step:1,def:2,
+        enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months']},
+      { key:'ElecShut',         label:'Electricity shutoff',     min:1,max:7,step:1,def:2,
+        enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months']},
+      { key:'WaterShutModifier',label:'Water shutoff day (-1=use range)',min:-1,max:365,step:1,def:-1},
+      { key:'ElecShutModifier', label:'Elec shutoff day (-1=use range)', min:-1,max:365,step:1,def:-1},
+    ]},
+    { id:'zpop', label:'Zombie Population', settings:[
+      { key:'Zombies',                  label:'Population preset',      min:1,max:5,step:1,def:4,
+        enum:['Insane','Very high','High','Normal','Low']},
+      { key:'Distribution',             label:'Distribution',           min:1,max:2,step:1,def:1,
+        enum:['Urban focused','Uniform']},
+      { key:'PopulationStartMultiplier',label:'Population start multi', min:0,max:4,step:0.1,def:1.0},
+      { key:'PopulationPeakMultiplier', label:'Population peak multi',  min:0,max:4,step:0.1,def:1.5},
+      { key:'PopulationPeakDay',        label:'Population peak day',    min:0,max:365,step:1,def:28},
+    ]},
+    { id:'zchar', label:'Zombie Character', settings:[
+      { key:'Speed',           label:'Speed',                min:1,max:3,step:1,def:2,enum:['Sprinters','Fast shamblers','Shamblers']},
+      { key:'Strength',        label:'Strength',             min:1,max:3,step:1,def:2,enum:['Superhuman','Normal','Weak']},
+      { key:'Toughness',       label:'Toughness',            min:1,max:3,step:1,def:2,enum:['Tough','Normal','Fragile']},
+      { key:'Transmission',    label:'Transmission',         min:1,max:3,step:1,def:1,enum:['Blood + saliva','Saliva only','Everyone infected']},
+      { key:'Mortality',       label:'Infection mortality',  min:1,max:6,step:1,def:5,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days','1-2 weeks']},
+      { key:'Reanimate',       label:'Reanimate time',       min:1,max:5,step:1,def:3,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days']},
+      { key:'Cognition',       label:'Cognition',            min:1,max:3,step:1,def:3,enum:['Navigate + doors','Navigate','Basic']},
+      { key:'Memory',          label:'Memory',               min:1,max:4,step:1,def:2,enum:['Long','Normal','Short','None']},
+      { key:'Sight',           label:'Sight',                min:1,max:3,step:1,def:2,enum:['Eagle','Normal','Poor']},
+      { key:'Hearing',         label:'Hearing',              min:1,max:3,step:1,def:2,enum:['Pinpoint','Normal','Poor']},
+      { key:'ThumpNoChasing',       label:'Thump when not chasing',  min:0,max:1,step:1,def:0,bool:true},
+      { key:'ThumpOnConstruction',  label:'Thump player builds',     min:0,max:1,step:1,def:1,bool:true},
+      { key:'ActiveOnly',      label:'Active period',        min:1,max:2,step:1,def:1,enum:['Both','Night only']},
+      { key:'ZombiesDragDown', label:'Drag down attack',     min:0,max:1,step:1,def:1,bool:true},
+      { key:'ZombiesFenceLunge',label:'Fence lunge',         min:0,max:1,step:1,def:1,bool:true},
+      { key:'DisableFakeDead', label:'Fake dead zombies',    min:1,max:2,step:1,def:1,enum:['World only','World + kills']},
+    ]},
+    { id:'zresp', label:'Zombie Respawn', settings:[
+      { key:'RespawnHours',       label:'Respawn hours (0=off)',   min:0,max:8760,step:1,def:72},
+      { key:'RespawnUnseenHours', label:'Min unseen hours',        min:0,max:720,step:1,def:16},
+      { key:'RespawnMultiplier',  label:'Respawn multiplier',      min:0,max:1,step:0.01,def:0.1},
+    ]},
+    { id:'loot', label:'Loot by Category', settings:[
+      { key:'FoodLoot',         label:'Food',            min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'CannedFoodLoot',   label:'Canned food',     min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'LiteratureLoot',   label:'Literature/books',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'SurvivalGearsLoot',label:'Survival gear',   min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'MedicalLoot',      label:'Medical',         min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'WeaponLoot',       label:'Melee weapons',   min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'RangedWeaponLoot', label:'Ranged weapons',  min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'AmmoLoot',         label:'Ammo',            min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'MechanicsLoot',    label:'Mechanics',       min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+      { key:'OtherLoot',        label:'Other / foraging',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+    ]},
+    { id:'lresp', label:'Loot Respawn & Cleanup', settings:[
+      { key:'LootRespawn',              label:'Container loot respawn',         min:1,max:4,step:1,def:1,enum:['None','Every day','Every week','Every month']},
+      { key:'SeenHoursPreventLootRespawn',label:'Visited → no respawn (hrs)', min:0,max:720,step:1,def:0},
+      { key:'HoursForWorldItemRemoval', label:'Ground item removal (0=never)', min:0,max:2160,step:1,def:24},
+    ]},
+    { id:'char', label:'Character & Survival', settings:[
+      { key:'XpMultiplier',      label:'XP multiplier',        min:0.1,max:10,step:0.1,def:1.0},
+      { key:'StatsDecrease',     label:'Stats decrease rate',  min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
+      { key:'EndRegen',          label:'Endurance regen',      min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
+      { key:'InjurySeverity',    label:'Injury severity',      min:1,max:2,step:1,def:2,enum:['Low','Normal']},
+      { key:'BoneFracture',      label:'Bone fractures',       min:0,max:1,step:1,def:1,bool:true},
+      { key:'CharacterFreePoints',label:'Free trait points',   min:-100,max:100,step:1,def:0},
+      { key:'MultiHitZombies',   label:'Multi-hit zombies',    min:0,max:1,step:1,def:0,bool:true},
+      { key:'RearVulnerability', label:'Rear bite vulnerability',min:1,max:3,step:1,def:3,enum:['Low','Medium','High']},
+      { key:'AttackBlockMovements',label:'Attack blocks movement',min:0,max:1,step:1,def:1,bool:true},
+    ]},
+    { id:'env', label:'Environment', settings:[
+      { key:'Temperature',   label:'Temperature',    min:1,max:4,step:1,def:3,enum:['Very cold','Cold','Normal','Hot']},
+      { key:'Rain',          label:'Rain frequency', min:1,max:4,step:1,def:3,enum:['Very dry','Dry','Normal','Rainy']},
+      { key:'NightDarkness', label:'Night darkness', min:1,max:3,step:1,def:3,enum:['Pitch black','Dark','Normal']},
+      { key:'NightLength',   label:'Night length',   min:1,max:4,step:1,def:3,enum:['Always night','Long','Normal','Short']},
+      { key:'ErosionSpeed',  label:'Erosion speed',  min:1,max:4,step:1,def:3,enum:['Very fast (20d)','Fast (50d)','Normal (100d)','Slow (200d)']},
+      { key:'FireSpread',    label:'Fire spreads',   min:0,max:1,step:1,def:1,bool:true},
+      { key:'TimeSinceApo',  label:'Years since apo start',min:1,max:12,step:1,def:1},
+    ]},
+    { id:'farm', label:'Farming & Nature', settings:[
+      { key:'Farming',         label:'Plant growth speed',    min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
+      { key:'NatureAbundance', label:'Nature abundance',      min:1,max:4,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant']},
+      { key:'PlantResilience', label:'Plant resilience',      min:1,max:4,step:1,def:3,enum:['Very high','High','Normal','Low']},
+      { key:'PlantAbundance',  label:'Plant yield',           min:1,max:4,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant']},
+      { key:'FoodRotSpeed',    label:'Food rot speed',        min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
+      { key:'FridgeFactor',    label:'Fridge effectiveness',  min:1,max:4,step:1,def:3,enum:['Very low','Low','Normal','High']},
+      { key:'CompostTime',     label:'Compost time',          min:1,max:7,step:1,def:2,
+        enum:['1 week','2 weeks','3 weeks','4 weeks','6 weeks','8 weeks','10 weeks']},
+    ]},
+    { id:'meta', label:'Meta Events', settings:[
+      { key:'Helicopter',        label:'Helicopter events',     min:1,max:3,step:1,def:2,enum:['Never','Once','Sometimes']},
+      { key:'MetaEvent',         label:'Meta events',           min:1,max:2,step:1,def:2,enum:['Never','Sometimes']},
+      { key:'GeneratorSpawning', label:'Generator spawn',       min:1,max:4,step:1,def:3,enum:['Extremely rare','Rare','Sometimes','Often']},
+      { key:'SurvivorHouseChance',label:'Survivor house',       min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'VehicleStoryChance',label:'Vehicle story',         min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'ZoneStoryChance',   label:'Zone story',            min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'AnnotatedMapChance',label:'Annotated maps',        min:1,max:5,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'Alarm',             label:'Building alarms',       min:1,max:5,step:1,def:5,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'LockedHouses',      label:'Locked houses',         min:1,max:5,step:1,def:5,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+    ]},
+    { id:'veh', label:'Vehicles', settings:[
+      { key:'CarSpawnRate',         label:'Car spawn rate',       min:1,max:4,step:1,def:3,enum:['None','Very low','Low','Normal']},
+      { key:'ChanceHasGas',         label:'Chance has gas',       min:1,max:2,step:1,def:1,enum:['Low','Normal']},
+      { key:'InitialGas',           label:'Car initial gas',      min:1,max:5,step:1,def:2,enum:['Very low','Low','Normal','High','Very high']},
+      { key:'FuelStationGas',       label:'Fuel station gas',     min:1,max:8,step:1,def:5,
+        enum:['Empty','Super low','Very low','Low','Normal','High','Very high','Full']},
+      { key:'CarGasConsumption',    label:'Gas consumption multi',min:0,max:10,step:0.1,def:1.0},
+      { key:'CarGeneralCondition',  label:'Car condition',        min:1,max:4,step:1,def:2,enum:['Very low','Low','Normal','High']},
+      { key:'LockedCar',            label:'Cars locked',          min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'TrafficJam',           label:'Traffic jams',         min:0,max:1,step:1,def:1,bool:true},
+      { key:'EnableVehicles',       label:'Vehicles enabled',     min:0,max:1,step:1,def:1,bool:true},
+      { key:'VehicleEasyUse',       label:'Easy use (no keys)',   min:0,max:1,step:1,def:0,bool:true},
+      { key:'ZombieAttractionMultiplier',label:'Engine noise multi',min:0,max:10,step:0.1,def:1.0},
+      { key:'CarAlarm',             label:'Car alarm freq',       min:1,max:5,step:1,def:2,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+      { key:'SirenShutoffHours',    label:'Siren shutoff hrs (0=never)',min:0,max:168,step:1,def:0},
+    ]},
+    { id:'corps', label:'Corpses & Blood', settings:[
+      { key:'HoursForCorpseRemoval',    label:'Corpse removal hrs (-1=never)',min:-1,max:2160,step:1,def:216},
+      { key:'DecayingCorpseHealthImpact',label:'Corpse decay impact',min:1,max:3,step:1,def:3,enum:['None','Low','Normal']},
+      { key:'BloodLevel',               label:'Blood level',        min:1,max:4,step:1,def:3,enum:['None','Low','Normal','High']},
+      { key:'ClothingDegradation',      label:'Clothing degradation',min:1,max:4,step:1,def:3,enum:['Disabled','Slow','Normal','Fast']},
+    ]},
+    { id:'misc', label:'Misc & Display', settings:[
+      { key:'StarterKit',         label:'Starter kit',             min:0,max:1,step:1,def:0,bool:true},
+      { key:'AllowMiniMap',       label:'Allow minimap',           min:0,max:1,step:1,def:0,bool:true},
+      { key:'AllowWorldMap',      label:'Allow world map',         min:0,max:1,step:1,def:1,bool:true},
+      { key:'MapAllKnown',        label:'Map all known at start',  min:0,max:1,step:1,def:0,bool:true},
+      { key:'Nutrition',          label:'Nutrition system',        min:0,max:1,step:1,def:1,bool:true},
+      { key:'EnablePoisoning',    label:'Food poisoning',          min:0,max:1,step:1,def:1,bool:true},
+      { key:'GeneratorFuelConsumption',label:'Generator fuel/hr',  min:0,max:10,step:0.1,def:1.0},
+      { key:'LightBulbLifespan',  label:'Lightbulb lifespan (0=eternal)',min:0,max:10,step:0.1,def:1.0},
+      { key:'AllowExteriorGenerator',label:'Generators work outside',min:0,max:1,step:1,def:1,bool:true},
+      { key:'ConstructionBonusPoints',label:'Construction HP bonus',min:1,max:4,step:1,def:3,enum:['None','Low','Normal','High']},
+    ]},
+  ]
+},
+];
+
+// =====================================================================
+// STATE
+// =====================================================================
+// values[playerIdx][fileId][settingKey] = number
+let values = [{},{},{}];
+let collapsed = {};  // { 'file_ID' or 'group_FILEID_GROUPID': bool }
+let dirHandle = null;
+
+// Build flat lookup: key → setting schema obj (per file)
+const settingMap = {};
+for(const f of SCHEMA){
+  settingMap[f.id] = {};
+  for(const g of f.groups)
+    for(const s of g.settings)
+      settingMap[f.id][s.key] = s;
+}
+
+function initValues(){
+  values = [{},{},{}];
+  for(const f of SCHEMA)
+    for(let p=0;p<3;p++){
+      values[p][f.id]={};
+      for(const g of f.groups)
+        for(const s of g.settings)
+          values[p][f.id][s.key]=s.def;
+    }
+}
+initValues();
+
+// =====================================================================
+// FORMAT HELPERS
+// =====================================================================
+function fmtDisplay(s,v){
+  if(s.bool) return v>=0.5?'on':'off';
+  if(s.enum){
+    const i=Math.round(v)-s.min;
+    return s.enum[Math.max(0,Math.min(s.enum.length-1,i))];
+  }
+  if(s.step<0.1) return v.toFixed(2);
+  if(s.step<1)   return v.toFixed(1);
+  return String(Math.round(v));
+}
+
+function fmtForFile(s,v){
+  if(s.bool) return v>=0.5?'true':'false';
+  if(s.step<0.1) return parseFloat(v.toFixed(2)).toString();
+  if(s.step<1)   return parseFloat(v.toFixed(1)).toString();
+  return String(Math.round(v));
+}
+
+function avgNum(s,p0,p1,p2){
+  const a=(p0+p1+p2)/3;
+  if(s.step>=1) return Math.round(a);
+  return a;
+}
+
+function clamp(s,v){ return Math.max(s.min,Math.min(s.max,v)); }
+
+// =====================================================================
+// PARSE
+// =====================================================================
+function parseIni(text){
+  const r={};
+  for(const line of text.split('\n')){
+    const eq=line.indexOf('=');
+    if(eq>0){ r[line.slice(0,eq).trim()]=line.slice(eq+1).trim(); }
+  }
+  return r;
+}
+
+function parseLua(text){
+  const r={};
+  const re=/(\w+)\s*=\s*([^,}\n\r]+)/g;
+  let m;
+  while((m=re.exec(text))!==null){
+    const k=m[1].trim(), v=m[2].trim().replace(/,$/, '');
+    if(k!=='SandboxVars'&&k!=='VERSION') r[k]=v;
+  }
+  return r;
+}
+
+function applyParsed(pi,fileId,parsed){
+  const fm=settingMap[fileId];
+  if(!fm) return;
+  if(!values[pi][fileId]) values[pi][fileId]={};
+  for(const [k,sv] of Object.entries(parsed)){
+    if(!fm[k]) continue;
+    const s=fm[k];
+    let v=parseFloat(sv);
+    if(isNaN(v)) v=(sv==='true'||sv==='1')?1:0;
+    values[pi][fileId][k]=clamp(s,v);
+  }
+}
+
+// =====================================================================
+// FORMAT OUTPUT FILES
+// =====================================================================
+function formatIni(pi_or_avg, isAvg){
+  const f=SCHEMA.find(x=>x.id==='ini');
+  const lines=['# PZ Server Settings — generated by vote.html',''];
+  for(const g of f.groups){
+    lines.push('# '+g.label);
+    for(const s of g.settings){
+      let v;
+      if(isAvg){
+        const a=avgNum(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]);
+        v=fmtForFile(s,a);
+      } else {
+        v=fmtForFile(s,values[pi_or_avg][f.id][s.key]??s.def);
+      }
+      lines.push(`${s.key}=${v}`);
+    }
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+function formatLua(pi_or_avg, isAvg){
+  const f=SCHEMA.find(x=>x.id==='sandbox');
+  const lines=['SandboxVars = {','    VERSION = 4,'];
+  for(const g of f.groups){
+    lines.push('    -- '+g.label);
+    for(const s of g.settings){
+      let v;
+      if(isAvg){
+        const a=avgNum(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]);
+        v=fmtForFile(s,a);
+      } else {
+        v=fmtForFile(s,values[pi_or_avg][f.id][s.key]??s.def);
+      }
+      lines.push(`    ${s.key} = ${v},`);
+    }
+    lines.push('');
+  }
+  lines.push('}');
+  return lines.join('\n');
+}
+
+// =====================================================================
+// FILE I/O
+// =====================================================================
+async function writeFile(dir,name,content){
+  const fh=await dir.getFileHandle(name,{create:true});
+  const w=await fh.createWritable();
+  await w.write(content);
+  await w.close();
+}
+
+async function loadFiles(){
+  const found={};
+  for await(const entry of dirHandle.values()){
+    if(entry.kind!=='file') continue;
+    const m=entry.name.match(/^(\d)_(.+)\.ini$/);
+    if(m) found['ini_'+m[1]]={name:m[2],entry};
+    const m2=entry.name.match(/^(\d)_(.+)_SandboxVars\.lua$/);
+    if(m2) found['lua_'+m2[1]]={name:m2[2],entry};
+  }
+  // Restore player names from filenames
+  for(let i=0;i<3;i++){
+    if(found['ini_'+i]) document.getElementById('p'+i).value=found['ini_'+i].name;
+    else if(found['lua_'+i]) document.getElementById('p'+i).value=found['lua_'+i].name;
+  }
+  updateColHeader();
+  // Load values
+  for(let i=0;i<3;i++){
+    if(found['ini_'+i]){
+      const file=await found['ini_'+i].entry.getFile();
+      applyParsed(i,'ini',parseIni(await file.text()));
+    }
+    if(found['lua_'+i]){
+      const file=await found['lua_'+i].entry.getFile();
+      applyParsed(i,'sandbox',parseLua(await file.text()));
+    }
+  }
+}
+
+async function saveFiles(){
+  if(!dirHandle){ alert('Open a folder first.'); return; }
+  const names=getNames();
+  // Per-player files
+  for(let i=0;i<3;i++){
+    await writeFile(dirHandle,`${i}_${names[i]}.ini`,formatIni(i,false));
+    await writeFile(dirHandle,`${i}_${names[i]}_SandboxVars.lua`,formatLua(i,false));
+  }
+  // Averages
+  await writeFile(dirHandle,'averages.ini',formatIni(null,true));
+  await writeFile(dirHandle,'averages_SandboxVars.lua',formatLua(null,true));
+
+  setStatus(`Saved 8 files to ${dirHandle.name} — ${new Date().toLocaleTimeString()}`,'save-ok');
+  const btn=document.getElementById('btn-save');
+  const orig=btn.innerHTML;
+  btn.innerHTML='&#10003; Saved!';
+  setTimeout(()=>btn.innerHTML=orig,1800);
+}
+
+// =====================================================================
+// HELPERS
+// =====================================================================
+function getNames(){ return [0,1,2].map(i=>document.getElementById('p'+i).value.trim()||'Player'+(i+1)); }
+function setStatus(msg,cls){
+  const el=document.getElementById('status');
+  el.textContent=msg;
+  el.className=cls||'';
+}
+function updateColHeader(){
+  const n=getNames();
+  ['ch0','ch1','ch2'].forEach((id,i)=>document.getElementById(id).textContent=n[i]);
+}
+
+// =====================================================================
+// RENDER
+// =====================================================================
+function fillSliderGradient(el){
+  const pct=((el.value-el.min)/(el.max-el.min))*100;
+  const colClass=el.dataset.pcol;
+  const col=colClass==='0'?'var(--p0d)':colClass==='1'?'var(--p1d)':'var(--p2d)';
+  el.style.background=`linear-gradient(${col},${col}) no-repeat 0/`+pct+'% 100%,#3c3c3c';
+}
+
+function buildTree(){
+  const tree=document.getElementById('tree');
+  tree.innerHTML='';
+
+  for(const f of SCHEMA){
+    const fDiv=document.createElement('div');
+    const fStateKey='file_'+f.id;
+    if(collapsed[fStateKey]===undefined) collapsed[fStateKey]=false;
+
+    // File row
+    const fRow=document.createElement('div');
+    fRow.className='t-row';
+    const fIndent=document.createElement('span'); fIndent.className='t-indent';
+    const fIcon=document.createElement('span'); fIcon.className='t-icon'; fIcon.id='icon_'+fStateKey;
+    fIcon.textContent=collapsed[fStateKey]?'▸':'▾';
+    const fLbl=document.createElement('span'); fLbl.className='lbl-file'; fLbl.textContent=f.label;
+    fRow.append(fIndent,fIcon,fLbl);
+    fRow.onclick=()=>toggleNode(fStateKey,fChildDiv,fIcon);
+    fDiv.appendChild(fRow);
+
+    const fChildDiv=document.createElement('div');
+    fChildDiv.className='t-children'+(collapsed[fStateKey]?' collapsed':'');
+
+    for(const g of f.groups){
+      const gStateKey='group_'+f.id+'_'+g.id;
+      if(collapsed[gStateKey]===undefined) collapsed[gStateKey]=false;
+
+      const gDiv=document.createElement('div');
+      const gRow=document.createElement('div'); gRow.className='t-row';
+      const g1=document.createElement('span');g1.className='t-indent';
+      const g2=document.createElement('span');g2.className='t-indent';
+      const gIcon=document.createElement('span');gIcon.className='t-icon';gIcon.id='icon_'+gStateKey;
+      gIcon.textContent=collapsed[gStateKey]?'▸':'▾';
+      const gLbl=document.createElement('span');gLbl.className='lbl-group';gLbl.textContent=g.label;
+      gRow.append(g1,g2,gIcon,gLbl);
+      gRow.onclick=()=>toggleNode(gStateKey,gChildDiv,gIcon);
+      gDiv.appendChild(gRow);
+
+      const gChildDiv=document.createElement('div');
+      gChildDiv.className='t-children'+(collapsed[gStateKey]?' collapsed':'');
+
+      for(const s of g.settings){
+        const sRow=document.createElement('div'); sRow.className='s-row';
+        const s1=document.createElement('span');s1.className='t-indent';
+        const s2=document.createElement('span');s2.className='t-indent';
+        const s3=document.createElement('span');s3.className='t-indent';
+        const sIco=document.createElement('span');sIco.className='t-icon';sIco.textContent='·';
+        const sKey=document.createElement('span');sKey.className='s-key';
+        sKey.textContent=s.key; sKey.title=s.label+' ('+s.min+'–'+s.max+')';
+        sRow.append(s1,s2,s3,sIco,sKey);
+
+        const wrap=document.createElement('div'); wrap.className='sliders-wrap';
+        const avgId='avg_'+f.id+'_'+s.key;
+
+        for(let p=0;p<3;p++){
+          const col=document.createElement('div'); col.className='p-col';
+          const valSp=document.createElement('span'); valSp.className='p-val';
+          valSp.id='val_'+p+'_'+f.id+'_'+s.key;
+          const cv=values[p][f.id][s.key]??s.def;
+          valSp.textContent=fmtDisplay(s,cv);
+
+          const range=document.createElement('input'); range.type='range';
+          range.min=s.min; range.max=s.max; range.step=s.step; range.value=cv;
+          range.dataset.pcol=String(p);
+          fillSliderGradient(range);
+
+          range.oninput=()=>{
+            const v=parseFloat(range.value);
+            values[p][f.id][s.key]=v;
+            valSp.textContent=fmtDisplay(s,v);
+            fillSliderGradient(range);
+            const avgEl=document.getElementById(avgId);
+            if(avgEl){
+              const a=avgNum(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]);
+              avgEl.textContent=fmtDisplay(s,a);
+            }
+          };
+
+          col.append(valSp,range);
+          wrap.appendChild(col);
+        }
+
+        const avgSp=document.createElement('span'); avgSp.className='s-avg'; avgSp.id=avgId;
+        const a=avgNum(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]);
+        avgSp.textContent=fmtDisplay(s,a);
+        wrap.appendChild(avgSp);
+
+        sRow.appendChild(wrap);
+        gChildDiv.appendChild(sRow);
+      }
+
+      gDiv.appendChild(gChildDiv);
+      fChildDiv.appendChild(gDiv);
+    }
+
+    fDiv.appendChild(fChildDiv);
+    tree.appendChild(fDiv);
+  }
+}
+
+function toggleNode(stateKey,childDiv,icon){
+  collapsed[stateKey]=!collapsed[stateKey];
+  icon.textContent=collapsed[stateKey]?'▸':'▾';
+  childDiv.classList.toggle('collapsed',collapsed[stateKey]);
+}
+
+// =====================================================================
+// EVENTS
+// =====================================================================
+document.getElementById('btn-open').onclick=async()=>{
+  if(!window.showDirectoryPicker){
+    document.getElementById('tree').innerHTML='<div class="no-api">⚠ File System Access API not available.<br>Use Chrome or Edge 86+ to open local files.</div>';
+    return;
+  }
+  try{
+    dirHandle=await window.showDirectoryPicker({mode:'readwrite'});
+    document.getElementById('folder-path').textContent=dirHandle.name+' /';
+    setStatus('Loading files from '+dirHandle.name+'...');
+    await loadFiles();
+    buildTree();
+    setStatus('Loaded from '+dirHandle.name+' — '+new Date().toLocaleTimeString());
+  }catch(e){
+    if(e.name!=='AbortError') setStatus('Error: '+e.message,'');
+  }
+};
+
+document.getElementById('btn-save').onclick=saveFiles;
+
+document.getElementById('btn-reset').onclick=()=>{
+  if(!confirm('Reset all sliders to schema defaults?')) return;
+  initValues();
+  buildTree();
+  setStatus('Reset to defaults — '+new Date().toLocaleTimeString());
+};
+
+['p0','p1','p2'].forEach(id=>document.getElementById(id).addEventListener('input',updateColHeader));
+
+// =====================================================================
+// INIT
+// =====================================================================
+if(!window.showDirectoryPicker){
+  document.getElementById('tree').innerHTML='<div class="no-api">⚠ File System Access API required.<br>Open this file in Chrome or Edge 86+.<br><br>Firefox does not support showDirectoryPicker().</div>';
+} else {
+  buildTree();
+}
+</script>
+</body>
+</html>
