@@ -362,6 +362,32 @@ function fmtFile(s,v){
   return String(Math.round(v));
 }
 function avg3(s,a,b,c){const x=(a+b+c)/3;return s.step>=1?Math.round(x):x;}
+
+// ─── PRESET DETECTION ─────────────────────────────────────────────────
+function presetMatches(pi,pr){
+  for(const fid of['ini','sandbox']){
+    const psec=fid==='ini'?pr.ini:pr.sandbox;
+    const f=SCHEMA.find(x=>x.id===fid);
+    for(const g of f.groups) for(const s of g.settings){
+      const pv=psec?.[s.key];
+      const cur=values[pi][fid][s.key];
+      if(pv!==undefined){if(cur!==clamp(s,pv)) return false;}
+      else{if(cur!==s.def) return false;}
+    }
+  }
+  return true;
+}
+function detectPreset(pi){
+  let isDefault=true;
+  outer:for(const f of SCHEMA) for(const g of f.groups) for(const s of g.settings)
+    if(values[pi][f.id][s.key]!==s.def){isDefault=false;break outer;}
+  if(isDefault) return '';
+  for(const[name,pr] of Object.entries(PRESETS)) if(presetMatches(pi,pr)) return name;
+  return 'custom';
+}
+function updatePresetDropdowns(){
+  for(let i=0;i<3;i++) document.getElementById('preset'+i).value=detectPreset(i);
+}
 function fillGrad(el){
   const pct=((el.value-el.min)/(el.max-el.min))*100;
   const p=el.dataset.pcol;
@@ -437,12 +463,12 @@ async function loadAllFromGitHub(){
   setStatus('Loading from GitHub...');
   let any=false;
   for(let i=0;i<3;i++) if(await fetchPlayer(i)) any=true;
-  rebuildSliders();
+  rebuildSliders();updatePresetDropdowns();
   setStatus(any?'Loaded from GitHub — '+new Date().toLocaleTimeString():'No saved configs on GitHub — using defaults');
 }
 async function reloadPlayer(pi){
   const loaded=await fetchPlayer(pi);
-  rebuildSliders();
+  rebuildSliders();updatePresetDropdowns();
   const n=getNames();
   setStatus(loaded?'Loaded '+n[pi]+' from GitHub — '+new Date().toLocaleTimeString():'No saved config for '+n[pi]+' on GitHub');
 }
