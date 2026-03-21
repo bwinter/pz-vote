@@ -36,7 +36,7 @@ SandboxVars = {
     DisableFakeDead = 1,
 
     -- Zombie Respawn
-    RespawnHours = 72,
+    RespawnHours = 0,
     RespawnUnseenHours = 16,
     RespawnMultiplier = 0.1,
 
@@ -47,8 +47,8 @@ SandboxVars = {
     SurvivalGearsLoot = 4,
     MedicalLoot = 4,
     WeaponLoot = 4,
-    RangedWeaponLoot = 4,
-    AmmoLoot = 4,
+    RangedWeaponLoot = 5,
+    AmmoLoot = 5,
     MechanicsLoot = 4,
     OtherLoot = 4,
 
