@@ -79,7 +79,8 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 <body>
 <div id="toolbar">
   <button class="btn btn-reload" id="btn-reset" title="Re-fetch all configs from GitHub">☁️ Load from GitHub</button>
-  <button class="btn btn-save" id="btn-save" title="Download all 8 files">⬇️ Download All</button>
+  <button class="btn btn-save" id="btn-save" title="Commit all 8 files to GitHub">☁️ Commit All</button>
+  <input id="gh-token" type="password" placeholder="GitHub token" title="Paste token to enable commits" style="padding:4px 8px;background:#2d2d2d;border:1px solid #555;border-radius:3px;color:var(--text);font-size:12px;width:200px;font-family:inherit;">
 </div>
 <div id="col-header">
   <div class="ch-spacer">
@@ -87,19 +88,19 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
     <span class="ch-label">Preset</span>
   </div>
   <div class="ch-p">
-    <div class="ch-p-row"><input class="p-input" id="p0" value="Diesel"><button class="btn-icon btn-icon-save" id="btn-save-0" title="Download player 1 files">⬇️</button></div>
+    <div class="ch-p-row"><input class="p-input" id="p0" value="Diesel"><button class="btn-icon btn-icon-save" id="btn-save-0" title="Commit player 1 to GitHub">☁️</button></div>
     <div class="ch-p-row"><select class="p-preset" id="preset0"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select><button class="btn-icon btn-icon-reload" id="btn-reload-0" title="Re-fetch player 1 from GitHub">🔄</button></div>
   </div>
   <div class="ch-p">
-    <div class="ch-p-row"><input class="p-input" id="p1" value="GunFox"><button class="btn-icon btn-icon-save" id="btn-save-1" title="Download player 2 files">⬇️</button></div>
+    <div class="ch-p-row"><input class="p-input" id="p1" value="GunFox"><button class="btn-icon btn-icon-save" id="btn-save-1" title="Commit player 2 to GitHub">☁️</button></div>
     <div class="ch-p-row"><select class="p-preset" id="preset1"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select><button class="btn-icon btn-icon-reload" id="btn-reload-1" title="Re-fetch player 2 from GitHub">🔄</button></div>
   </div>
   <div class="ch-p">
-    <div class="ch-p-row"><input class="p-input" id="p2" value="SnowCrash"><button class="btn-icon btn-icon-save" id="btn-save-2" title="Download player 3 files">⬇️</button></div>
+    <div class="ch-p-row"><input class="p-input" id="p2" value="SnowCrash"><button class="btn-icon btn-icon-save" id="btn-save-2" title="Commit player 3 to GitHub">☁️</button></div>
     <div class="ch-p-row"><select class="p-preset" id="preset2"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select><button class="btn-icon btn-icon-reload" id="btn-reload-2" title="Re-fetch player 3 from GitHub">🔄</button></div>
   </div>
   <div class="ch-avg">
-    <button class="btn-icon btn-icon-save" id="btn-save-avg" title="Download average files">⬇️</button>
+    <button class="btn-icon btn-icon-save" id="btn-save-avg" title="Commit averages to GitHub">☁️</button>
     <span class="ch-avg-label">avg</span>
   </div>
 </div>
@@ -449,8 +450,10 @@ function formatLua(pi,isAvg){
   L.push('}');return L.join('\n');
 }
 
-// ─── GITHUB / DOWNLOAD ────────────────────────────────────────────────
+// ─── GITHUB FETCH / COMMIT ────────────────────────────────────────────
 const RAW_BASE='https://raw.githubusercontent.com/bwinter/pz-vote/main/';
+const GH_API='https://api.github.com/repos/bwinter/pz-vote/contents/';
+function getToken(){return document.getElementById('gh-token').value.trim();}
 
 async function fetchPlayer(pi){
   const name=document.getElementById('p'+pi).value.trim()||('Player'+(pi+1));
@@ -473,28 +476,51 @@ async function reloadPlayer(pi){
   setStatus(loaded?'Loaded '+n[pi]+' from GitHub — '+new Date().toLocaleTimeString():'No saved config for '+n[pi]+' on GitHub');
 }
 
-function dlFile(filename,content){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([content],{type:'text/plain'}));
-  a.download=filename;a.click();URL.revokeObjectURL(a.href);
+async function ghSha(path){
+  try{const r=await fetch(GH_API+path,{headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json'}});if(r.ok){const d=await r.json();return d.sha;}}catch(e){}
+  return null;
 }
-function downloadPlayer(pi){
+async function ghPut(path,content,msg){
+  const sha=await ghSha(path);
+  const body={message:msg,content:btoa(unescape(encodeURIComponent(content)))};
+  if(sha) body.sha=sha;
+  const r=await fetch(GH_API+path,{method:'PUT',headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||r.statusText);}
+}
+function noToken(){setStatus('Paste the GitHub token into the toolbar to enable commits','warn');return true;}
+
+async function commitPlayer(pi){
+  if(!getToken()) return noToken();
   const n=getNames();
-  dlFile(pi+'_'+n[pi]+'.ini',formatIni(pi,false));
-  dlFile(pi+'_'+n[pi]+'_SandboxVars.lua',formatLua(pi,false));
-  setStatus('Downloaded '+n[pi]+' files — DM them to bwinter','save-ok');
+  setStatus('Committing '+n[pi]+'...');
+  try{
+    await ghPut(pi+'_'+n[pi]+'.ini',formatIni(pi,false),'Update '+n[pi]+' config');
+    await ghPut(pi+'_'+n[pi]+'_SandboxVars.lua',formatLua(pi,false),'Update '+n[pi]+' sandbox');
+    setStatus('Committed '+n[pi]+' to GitHub','save-ok');
+  }catch(e){setStatus('Commit failed: '+e.message,'warn');}
 }
-function downloadAll(){
+async function commitAll(){
+  if(!getToken()) return noToken();
   const n=getNames();
-  for(let i=0;i<3;i++){dlFile(i+'_'+n[i]+'.ini',formatIni(i,false));dlFile(i+'_'+n[i]+'_SandboxVars.lua',formatLua(i,false));}
-  dlFile('averages.ini',formatIni(null,true));
-  dlFile('averages_SandboxVars.lua',formatLua(null,true));
-  setStatus('Downloaded 8 files — DM your 2 files to bwinter','save-ok');
+  setStatus('Committing all files...');
+  try{
+    for(let i=0;i<3;i++){
+      await ghPut(i+'_'+n[i]+'.ini',formatIni(i,false),'Update '+n[i]+' config');
+      await ghPut(i+'_'+n[i]+'_SandboxVars.lua',formatLua(i,false),'Update '+n[i]+' sandbox');
+    }
+    await ghPut('averages.ini',formatIni(null,true),'Update averages');
+    await ghPut('averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
+    setStatus('Committed 8 files to GitHub','save-ok');
+  }catch(e){setStatus('Commit failed: '+e.message,'warn');}
 }
-function downloadAvg(){
-  dlFile('averages.ini',formatIni(null,true));
-  dlFile('averages_SandboxVars.lua',formatLua(null,true));
-  setStatus('Downloaded average files — '+new Date().toLocaleTimeString(),'save-ok');
+async function commitAvg(){
+  if(!getToken()) return noToken();
+  setStatus('Committing averages...');
+  try{
+    await ghPut('averages.ini',formatIni(null,true),'Update averages');
+    await ghPut('averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
+    setStatus('Committed averages to GitHub','save-ok');
+  }catch(e){setStatus('Commit failed: '+e.message,'warn');}
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────
@@ -579,14 +605,14 @@ function tog(k,ch,ico){collapsed[k]=!collapsed[k];ico.textContent=collapsed[k]?'
 
 // ─── EVENTS ───────────────────────────────────────────────────────────
 document.getElementById('btn-reset').onclick=()=>{initValues();loadAllFromGitHub();};
-document.getElementById('btn-save').onclick=downloadAll;
+document.getElementById('btn-save').onclick=commitAll;
 
 [0,1,2].forEach(i=>{
   document.getElementById('preset'+i).addEventListener('change',e=>applyPreset(i,e.target.value));
-  document.getElementById('btn-save-'+i).onclick=()=>downloadPlayer(i);
+  document.getElementById('btn-save-'+i).onclick=()=>commitPlayer(i);
   document.getElementById('btn-reload-'+i).onclick=()=>reloadPlayer(i);
 });
-document.getElementById('btn-save-avg').onclick=downloadAvg;
+document.getElementById('btn-save-avg').onclick=commitAvg;
 
 buildTree();
 loadAllFromGitHub();
