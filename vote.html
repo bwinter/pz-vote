@@ -20,11 +20,17 @@
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:auto;}
 #toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300;min-height:var(--toolbar-h);flex-wrap:wrap;}
-.btn{padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.btn{padding:5px 16px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-family:inherit;line-height:1.4;}
 .btn:hover{filter:brightness(1.15);}
 .btn:active{filter:brightness(0.9);}
-.btn-save{background:#2d7a2d;min-width:120px;}
-.btn-reload{background:#555;min-width:120px;}
+.btn-save{background:#2d7a2d;min-width:110px;}
+.btn-reload{background:#505050;min-width:110px;}
+.ch-p-row{display:flex;align-items:center;gap:3px;}
+.btn-icon{padding:2px 6px;border:none;border-radius:2px;cursor:pointer;font-size:11px;line-height:1.5;background:#3a3a3a;color:#fff;flex-shrink:0;font-family:inherit;}
+.btn-icon:hover{filter:brightness(1.25);}
+.btn-icon:active{filter:brightness(0.9);}
+.btn-icon-save{background:#2d6b2d;}
+.btn-icon-reload{background:#484848;}
 #modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;}
 #modal-overlay.hidden{display:none;}
 #modal{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:32px 40px;max-width:440px;width:90%;text-align:center;display:flex;flex-direction:column;gap:16px;}
@@ -47,7 +53,8 @@ select option{background:#2d2d2d;color:var(--text);}
 .ch-spacer{width:var(--key-offset);flex-shrink:0;display:flex;flex-direction:column;justify-content:space-around;padding:5px 8px;gap:3px;}
 .ch-label{font-family:'Consolas','Cascadia Code',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;}
 .ch-p{flex:1;min-width:100px;display:flex;flex-direction:column;gap:3px;padding:5px 5px;border-left:1px solid var(--border2);}
-.ch-avg{width:var(--avg-w);flex-shrink:0;text-align:right;color:var(--avg);padding-right:12px;text-transform:uppercase;letter-spacing:.06em;font-size:10px;}
+.ch-avg{width:var(--avg-w);flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-around;padding:5px 8px 5px 0;gap:3px;}
+.ch-avg-label{color:var(--avg);text-transform:uppercase;letter-spacing:.06em;font-size:10px;padding:2px 6px;line-height:1.5;border-radius:2px;}
 #tree{min-width:900px;}
 .t-children.collapsed{display:none;}
 .t-row,.s-row{display:flex;align-items:center;min-height:var(--row-h);padding:1px 0;}
@@ -89,8 +96,8 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 </div>
 <div id="toolbar">
   <span id="folder-path">No folder selected</span>
-  <button class="btn btn-reload" id="btn-reset">🔄 Reload from Disk</button>
-  <button class="btn btn-save" id="btn-save">💾 Save</button>
+  <button class="btn btn-reload" id="btn-reset" title="Reload all 8 files from disk">🔄 Reload All</button>
+  <button class="btn btn-save" id="btn-save" title="Save all 8 files">💾 Save All</button>
 </div>
 <div id="col-header">
   <div class="ch-spacer">
@@ -98,18 +105,21 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
     <span class="ch-label">Preset</span>
   </div>
   <div class="ch-p">
-    <input class="p-input" id="p0" value="Diesel">
-    <select class="p-preset" id="preset0"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select>
+    <div class="ch-p-row"><input class="p-input" id="p0" value="Diesel"><button class="btn-icon btn-icon-save" id="btn-save-0" title="Save player 1 files">💾</button></div>
+    <div class="ch-p-row"><select class="p-preset" id="preset0"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select><button class="btn-icon btn-icon-reload" id="btn-reload-0" title="Reload player 1 from disk">🔄</button></div>
   </div>
   <div class="ch-p">
-    <input class="p-input" id="p1" value="GunFox">
-    <select class="p-preset" id="preset1"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select>
+    <div class="ch-p-row"><input class="p-input" id="p1" value="GunFox"><button class="btn-icon btn-icon-save" id="btn-save-1" title="Save player 2 files">💾</button></div>
+    <div class="ch-p-row"><select class="p-preset" id="preset1"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select><button class="btn-icon btn-icon-reload" id="btn-reload-1" title="Reload player 2 from disk">🔄</button></div>
   </div>
   <div class="ch-p">
-    <input class="p-input" id="p2" value="SnowCrash">
-    <select class="p-preset" id="preset2"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select>
+    <div class="ch-p-row"><input class="p-input" id="p2" value="SnowCrash"><button class="btn-icon btn-icon-save" id="btn-save-2" title="Save player 3 files">💾</button></div>
+    <div class="ch-p-row"><select class="p-preset" id="preset2"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select><button class="btn-icon btn-icon-reload" id="btn-reload-2" title="Reload player 3 from disk">🔄</button></div>
   </div>
-  <div class="ch-avg">avg</div>
+  <div class="ch-avg">
+    <button class="btn-icon btn-icon-save" id="btn-save-avg" title="Save averages">💾</button>
+    <span class="ch-avg-label">avg</span>
+  </div>
 </div>
 <div id="status">Click "Open Folder" and select the folder containing this file — settings will be saved there.</div>
 <div id="tree"></div>
@@ -464,6 +474,32 @@ async function saveFiles(){
   const b=document.getElementById('btn-save');const o=b.innerHTML;b.innerHTML='&#10003; Saved!';
   setTimeout(()=>b.innerHTML=o,1800);
 }
+async function savePlayer(pi){
+  if(!dirHandle){showModal();return;}
+  const n=getNames();
+  await wf(dirHandle,`${pi}_${n[pi]}.ini`,formatIni(pi,false));
+  await wf(dirHandle,`${pi}_${n[pi]}_SandboxVars.lua`,formatLua(pi,false));
+  setStatus(`Saved ${n[pi]} — ${new Date().toLocaleTimeString()}`,'save-ok');
+}
+async function reloadPlayer(pi){
+  if(!dirHandle){showModal();return;}
+  for await(const entry of dirHandle.values()){
+    if(entry.kind!=='file') continue;
+    const m1=entry.name.match(/^(\d)_(.+)\.ini$/);
+    if(m1&&parseInt(m1[1])===pi){const file=await entry.getFile();applyParsed(pi,'ini',parseIni(await file.text()));}
+    const m2=entry.name.match(/^(\d)_(.+)_SandboxVars\.lua$/);
+    if(m2&&parseInt(m2[1])===pi){const file=await entry.getFile();applyParsed(pi,'sandbox',parseLua(await file.text()));}
+  }
+  rebuildSliders();
+  const n=getNames();
+  setStatus(`Reloaded ${n[pi]} — ${new Date().toLocaleTimeString()}`);
+}
+async function saveAvg(){
+  if(!dirHandle){showModal();return;}
+  await wf(dirHandle,'averages.ini',formatIni(null,true));
+  await wf(dirHandle,'averages_SandboxVars.lua',formatLua(null,true));
+  setStatus(`Saved averages — ${new Date().toLocaleTimeString()}`,'save-ok');
+}
 
 // ─── RENDER ───────────────────────────────────────────────────────────
 function buildTree(){
@@ -576,7 +612,10 @@ document.getElementById('btn-reset').onclick=async()=>{
 
 [0,1,2].forEach(i=>{
   document.getElementById('preset'+i).addEventListener('change',e=>applyPreset(i,e.target.value));
+  document.getElementById('btn-save-'+i).onclick=()=>savePlayer(i);
+  document.getElementById('btn-reload-'+i).onclick=()=>reloadPlayer(i);
 });
+document.getElementById('btn-save-avg').onclick=saveAvg;
 
 if(!window.showDirectoryPicker){
   document.getElementById('modal-body').innerHTML='This tool requires the File System Access API.<br>Open in <strong>Chrome or Edge 86+</strong> — Firefox is not supported.';
