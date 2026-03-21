@@ -19,14 +19,16 @@
   --row-h:26px;--toolbar-h:38px;--header-h:28px;
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:auto;}
-#topbar{position:sticky;top:0;z-index:300;background:var(--bg2);}
-#toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);min-height:var(--toolbar-h);flex-wrap:wrap;}
-#settings-panel{padding:10px 14px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.settings-label{font-size:11px;color:var(--dim);white-space:nowrap;}
-.settings-note{font-size:10px;color:#555;margin-left:3px;}
-.settings-token{padding:4px 8px;background:#2d2d2d;border:1px solid #555;border-radius:3px;color:var(--text);font-size:12px;width:230px;font-family:inherit;}
+#toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300;min-height:var(--toolbar-h);flex-wrap:wrap;}
+#settings-panel{position:fixed;top:var(--toolbar-h);left:0;width:260px;background:var(--bg2);border-right:1px solid var(--border);border-top:2px solid var(--accent);border-bottom:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:10px;transform:translateX(-100%);transition:transform .18s ease;z-index:250;box-shadow:4px 0 16px rgba(0,0,0,.5);}
+#settings-panel.open{transform:translateX(0);}
+.settings-label{font-size:11px;color:var(--dim);display:flex;flex-direction:column;gap:5px;}
+.settings-label-text{display:flex;align-items:baseline;gap:4px;}
+.settings-note{font-size:10px;color:#555;}
+.settings-token{padding:4px 8px;background:#2d2d2d;border:1px solid #555;border-radius:3px;color:var(--text);font-size:12px;width:100%;font-family:inherit;}
 .settings-token:focus{outline:none;border-color:var(--accent);}
 .settings-token.has-token{border-color:#3a8a3a;}
+.settings-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .btn-settings{background:#3a3a3a;}
 .btn{padding:5px 16px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-family:inherit;line-height:1.4;}
 .btn:hover{filter:brightness(1.15);}
@@ -47,7 +49,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(-
 .p-preset{width:100%;padding:2px 4px;background:#2d2d2d;border:1px solid #444;color:var(--text);border-radius:2px;font-size:10px;cursor:pointer;font-family:inherit;}
 .p-preset:focus{outline:none;border-color:var(--accent);}
 select option{background:#2d2d2d;color:var(--text);}
-#col-header{display:flex;align-items:stretch;background:var(--bg4);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:290;font-size:11px;min-height:var(--header-h);min-width:900px;}
+#col-header{display:flex;align-items:stretch;background:var(--bg4);border-bottom:1px solid var(--border);position:sticky;top:var(--toolbar-h);z-index:290;font-size:11px;min-height:var(--header-h);min-width:900px;}
 .ch-spacer{width:var(--key-offset);flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-start;padding:5px 8px;gap:3px;}
 .ch-label{font-family:'Consolas','Cascadia Code',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;min-height:22px;}
 .ch-label-action{color:var(--text);text-transform:none;letter-spacing:0;opacity:.75;}
@@ -92,17 +94,18 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 </style>
 </head>
 <body>
-<div id="topbar">
 <div id="toolbar">
   <button class="btn btn-settings" id="btn-settings" title="Settings — token, refresh, save all">⚙️ Settings</button>
 </div>
-<div id="settings-panel" hidden>
-  <label class="settings-label">GitHub token <span class="settings-note">(saved in this browser)</span>
+<div id="settings-panel">
+  <label class="settings-label">
+    <span class="settings-label-text">GitHub token <span class="settings-note">(saved in this browser)</span></span>
     <input id="gh-token" type="password" class="settings-token" placeholder="paste token here" title="Your GitHub personal access token">
   </label>
-  <button class="btn btn-reload" id="btn-reset" title="Re-fetch all configs from GitHub">☁️ Refresh All</button>
-  <button class="btn btn-save" id="btn-save" title="Save all 3 players + averages to GitHub">☁️ Save All</button>
-</div>
+  <div class="settings-actions">
+    <button class="btn btn-reload" id="btn-reset" title="Re-fetch all configs from GitHub">☁️ Refresh All</button>
+    <button class="btn btn-save" id="btn-save" title="Save all 3 players + averages to GitHub">☁️ Save All</button>
+  </div>
 </div>
 <div id="col-header">
   <div class="ch-spacer">
@@ -663,7 +666,7 @@ async function ghPut(path,content,msg){
   const r=await fetch(GH_API+path,{method:'PUT',headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||r.statusText);}
 }
-function openSettings(){document.getElementById('settings-panel').hidden=false;}
+function openSettings(){document.getElementById('settings-panel').classList.add('open');}
 function noToken(){
   openSettings();
   const tf=document.getElementById('gh-token');tf.focus();
@@ -789,7 +792,7 @@ function tog(k,ch,ico){collapsed[k]=!collapsed[k];ico.textContent=collapsed[k]?'
 // ─── EVENTS ───────────────────────────────────────────────────────────
 // Settings panel toggle
 document.getElementById('btn-settings').onclick=()=>{
-  document.getElementById('settings-panel').hidden=!document.getElementById('settings-panel').hidden;
+  document.getElementById('settings-panel').classList.toggle('open');
 };
 
 // Token — load from localStorage, persist on change
@@ -803,11 +806,6 @@ document.getElementById('btn-settings').onclick=()=>{
     else{localStorage.removeItem('pz-gh-token');this.classList.remove('has-token');}
   });
 })();
-
-// Keep col-header stuck just below #topbar as settings panel open/closes
-new ResizeObserver(()=>{
-  document.getElementById('col-header').style.top=document.getElementById('topbar').offsetHeight+'px';
-}).observe(document.getElementById('topbar'));
 
 document.getElementById('btn-reset').onclick=()=>{initValues();loadAllFromGitHub();};
 document.getElementById('btn-save').onclick=commitAll;
