@@ -5,8 +5,8 @@ SandboxVars = {
     StartMonth = 7,
     StartDay = 9,
     StartTime = 2,
-    WaterShut = 4,
-    ElecShut = 4,
+    WaterShut = 2,
+    ElecShut = 2,
     WaterShutModifier = -1,
     ElecShutModifier = -1,
 
@@ -41,16 +41,16 @@ SandboxVars = {
     RespawnMultiplier = 0.1,
 
     -- Loot by Category
-    FoodLoot = 5,
-    CannedFoodLoot = 5,
-    LiteratureLoot = 5,
-    SurvivalGearsLoot = 5,
-    MedicalLoot = 5,
-    WeaponLoot = 5,
-    RangedWeaponLoot = 5,
-    AmmoLoot = 5,
-    MechanicsLoot = 5,
-    OtherLoot = 5,
+    FoodLoot = 4,
+    CannedFoodLoot = 4,
+    LiteratureLoot = 4,
+    SurvivalGearsLoot = 4,
+    MedicalLoot = 4,
+    WeaponLoot = 4,
+    RangedWeaponLoot = 4,
+    AmmoLoot = 4,
+    MechanicsLoot = 4,
+    OtherLoot = 4,
 
     -- Loot Respawn & Cleanup
     LootRespawn = 1,
@@ -58,30 +58,30 @@ SandboxVars = {
     HoursForWorldItemRemoval = 24,
 
     -- Character & Survival
-    XpMultiplier = 2,
+    XpMultiplier = 1,
     StatsDecrease = 3,
-    EndRegen = 2,
-    InjurySeverity = 1,
-    BoneFracture = false,
+    EndRegen = 3,
+    InjurySeverity = 2,
+    BoneFracture = true,
     CharacterFreePoints = 0,
-    MultiHitZombies = true,
-    RearVulnerability = 2,
+    MultiHitZombies = false,
+    RearVulnerability = 3,
     AttackBlockMovements = true,
 
     -- Environment
     Temperature = 3,
     Rain = 3,
-    NightDarkness = 3,
+    NightDarkness = 2,
     NightLength = 3,
     ErosionSpeed = 3,
     FireSpread = true,
     TimeSinceApo = 1,
 
     -- Farming & Nature
-    Farming = 2,
-    NatureAbundance = 4,
-    PlantResilience = 4,
-    PlantAbundance = 4,
+    Farming = 3,
+    NatureAbundance = 3,
+    PlantResilience = 3,
+    PlantAbundance = 3,
     FoodRotSpeed = 3,
     FridgeFactor = 3,
     CompostTime = 2,
@@ -94,16 +94,16 @@ SandboxVars = {
     VehicleStoryChance = 3,
     ZoneStoryChance = 3,
     AnnotatedMapChance = 4,
-    Alarm = 3,
-    LockedHouses = 3,
+    Alarm = 5,
+    LockedHouses = 5,
 
     -- Vehicles
-    CarSpawnRate = 4,
+    CarSpawnRate = 3,
     ChanceHasGas = 1,
-    InitialGas = 3,
-    FuelStationGas = 6,
+    InitialGas = 2,
+    FuelStationGas = 5,
     CarGasConsumption = 1,
-    CarGeneralCondition = 3,
+    CarGeneralCondition = 2,
     LockedCar = 3,
     TrafficJam = true,
     EnableVehicles = true,
@@ -131,10 +131,10 @@ SandboxVars = {
     ConstructionBonusPoints = 3,
 
     -- [B42] Animals & Livestock
-    AnimalAgingSpeed = 2, -- B42 (verify key name)
-    MilkIncreaseSpeed = 2, -- B42 (verify key name)
-    AnimalSpawnMultiplier = 1.5, -- B42 (verify key name)
-    WildAnimalSpawnMultiplier = 1.5, -- B42 (verify key name)
+    AnimalAgingSpeed = 3, -- B42 (verify key name)
+    MilkIncreaseSpeed = 3, -- B42 (verify key name)
+    AnimalSpawnMultiplier = 1, -- B42 (verify key name)
+    WildAnimalSpawnMultiplier = 1, -- B42 (verify key name)
 
     -- [B42] Crafting & Resources
     CraftingYieldMultiplier = 1, -- B42 (verify key name)
@@ -143,7 +143,7 @@ SandboxVars = {
     PotteryEnabled = true, -- B42 (verify key name)
 
     -- [B42] Basements & Darkness
-    BasementSpawnFrequency = 3, -- B42 (verify key name)
+    BasementSpawnFrequency = 2, -- B42 (verify key name)
     UndergroundDarkness = 2, -- B42 (verify key name)
 
 }
