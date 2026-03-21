@@ -9,7 +9,7 @@
 :root{
   --bg:#1e1e1e;--bg2:#252526;--bg3:#2a2d2e;--bg4:#1a1a1a;
   --border:#333;--border2:#2a2a2a;
-  --text:#cccccc;--dim:#6e7681;--key:#9cdcfe;--group:#c586c0;
+  --text:#cccccc;--dim:#8f9aa4;--key:#9cdcfe;--group:#c586c0;
   --file:#569cd6;--avg:#dcdcaa;
   --p0:#4f9ede;--p1:#c58bc0;--p2:#4ec9b0;
   --p0d:#1f4a70;--p1d:#5a3860;--p2d:#1b5a50;
@@ -30,7 +30,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(-
 #modal{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:32px 40px;max-width:440px;width:90%;text-align:center;display:flex;flex-direction:column;gap:16px;}
 #modal h2{font-size:16px;color:var(--text);font-weight:600;}
 #modal p{font-size:13px;color:var(--dim);line-height:1.6;}
-#modal .modal-note{font-size:11px;color:var(--dim);opacity:.7;}
+#modal .modal-note{font-size:11px;color:var(--dim);}
 #modal .modal-error{color:#e05252;font-size:13px;line-height:1.6;}
 #modal-btn-open{align-self:center;padding:8px 24px;font-size:13px;}
 #folder-path{font-size:11px;color:var(--dim);font-family:'Consolas','Cascadia Code',monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:40px;}
@@ -89,8 +89,8 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 </div>
 <div id="toolbar">
   <span id="folder-path">No folder selected</span>
-  <button class="btn btn-reload" id="btn-reset">Reload from Disk</button>
-  <button class="btn btn-save" id="btn-save">Save</button>
+  <button class="btn btn-reload" id="btn-reset">🔄 Reload from Disk</button>
+  <button class="btn btn-save" id="btn-save">💾 Save</button>
 </div>
 <div id="col-header">
   <div class="ch-spacer">
@@ -449,7 +449,6 @@ async function loadFromDir(){
     if(found['ini_'+i]) document.getElementById('p'+i).value=found['ini_'+i].name;
     else if(found['lua_'+i]) document.getElementById('p'+i).value=found['lua_'+i].name;
   }
-  updateColHeader();
   for(let i=0;i<3;i++){
     if(found['ini_'+i]){const file=await found['ini_'+i].entry.getFile();applyParsed(i,'ini',parseIni(await file.text()));}
     if(found['lua_'+i]){const file=await found['lua_'+i].entry.getFile();applyParsed(i,'sandbox',parseLua(await file.text()));}
@@ -477,7 +476,13 @@ function buildTree(){
     const fLbl=document.createElement('span');fLbl.className='lbl-file';fLbl.textContent=f.label;
     fRow.append(mkI(),fIco,fLbl);
     const fCh=document.createElement('div');fCh.className='t-children'+(collapsed[fk]?' collapsed':'');
-    fRow.onclick=()=>tog(fk,fCh,fIco);
+    fRow.onclick=()=>{
+      tog(fk,fCh,fIco);
+      if(collapsed[fk]) for(const g of f.groups){
+        const gk='grp_'+f.id+'_'+g.id;
+        if(!collapsed[gk]){collapsed[gk]=true;document.getElementById('ico_'+gk).textContent='▶';document.getElementById('gch_'+gk).classList.add('collapsed');}
+      }
+    };
     fDiv.append(fRow,fCh);
 
     for(const g of f.groups){
@@ -489,7 +494,7 @@ function buildTree(){
       gLbl.textContent=g.label;
       if(g.b42){const t=document.createElement('span');t.className='b42-tag';t.textContent='B42';gLbl.appendChild(t);}
       gRow.append(mkI(),mkI(),gIco,gLbl);
-      const gCh=document.createElement('div');gCh.className='t-children'+(collapsed[gk]?' collapsed':'');
+      const gCh=document.createElement('div');gCh.id='gch_'+gk;gCh.className='t-children'+(collapsed[gk]?' collapsed':'');
       gRow.onclick=()=>tog(gk,gCh,gIco);
       gDiv.append(gRow,gCh);
 
