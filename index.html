@@ -20,15 +20,14 @@
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:auto;}
 #toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300;min-height:var(--toolbar-h);flex-wrap:wrap;}
-#settings-panel{position:fixed;top:var(--toolbar-h);left:0;width:260px;background:var(--bg2);border-right:1px solid var(--border);border-top:2px solid var(--accent);border-bottom:1px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:10px;transform:translateX(-100%);transition:transform .18s ease;z-index:250;box-shadow:4px 0 16px rgba(0,0,0,.5);}
-#settings-panel.open{transform:translateX(0);}
-.settings-label{font-size:11px;color:var(--dim);display:flex;flex-direction:column;gap:5px;}
-.settings-label-text{display:flex;align-items:baseline;gap:4px;}
+#settings-panel{display:flex;align-items:center;gap:10px;overflow:hidden;max-width:0;transition:max-width .2s ease;white-space:nowrap;}
+#settings-panel.open{max-width:600px;}
+.settings-label{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px;white-space:nowrap;}
 .settings-note{font-size:10px;color:#555;}
-.settings-token{padding:4px 8px;background:#2d2d2d;border:1px solid #555;border-radius:3px;color:var(--text);font-size:12px;width:100%;font-family:inherit;}
+.settings-token{padding:3px 8px;background:#2d2d2d;border:1px solid #555;border-radius:3px;color:var(--text);font-size:12px;width:180px;font-family:inherit;}
 .settings-token:focus{outline:none;border-color:var(--accent);}
 .settings-token.has-token{border-color:#3a8a3a;}
-.settings-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.settings-actions{display:flex;gap:6px;}
 .btn-settings{background:#3a3a3a;}
 .btn{padding:5px 16px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-family:inherit;line-height:1.4;}
 .btn:hover{filter:brightness(1.15);}
@@ -96,15 +95,15 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 <body>
 <div id="toolbar">
   <button class="btn btn-settings" id="btn-settings" title="Settings — token, refresh, save all">⚙️ Settings</button>
-</div>
-<div id="settings-panel">
-  <label class="settings-label">
-    <span class="settings-label-text">GitHub token <span class="settings-note">(saved in this browser)</span></span>
-    <input id="gh-token" type="password" class="settings-token" placeholder="paste token here" title="Your GitHub personal access token">
-  </label>
-  <div class="settings-actions">
-    <button class="btn btn-reload" id="btn-reset" title="Re-fetch all configs from GitHub">☁️ Refresh All</button>
-    <button class="btn btn-save" id="btn-save" title="Save all 3 players + averages to GitHub">☁️ Save All</button>
+  <div id="settings-panel">
+    <label class="settings-label">
+      <span class="settings-note">GitHub token</span>
+      <input id="gh-token" type="password" class="settings-token" placeholder="paste token here" title="Your GitHub personal access token">
+    </label>
+    <div class="settings-actions">
+      <button class="btn btn-reload" id="btn-reset" title="Re-fetch all configs from GitHub">☁️ Refresh All</button>
+      <button class="btn btn-save" id="btn-save" title="Save all 3 players + averages to GitHub">☁️ Save All</button>
+    </div>
   </div>
 </div>
 <div id="col-header">
