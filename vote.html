@@ -20,11 +20,19 @@
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:auto;}
 #toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300;min-height:var(--toolbar-h);flex-wrap:wrap;}
-.btn{padding:3px 10px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.btn{padding:4px 12px;background:var(--accent);color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-family:inherit;}
 .btn:hover{filter:brightness(1.15);}
 .btn:active{filter:brightness(0.9);}
-.btn-save{background:#2d7a2d;}
-.btn-reload{background:#555;font-size:11px;}
+.btn-save{background:#2d7a2d;min-width:120px;}
+.btn-reload{background:#555;min-width:120px;}
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;}
+#modal-overlay.hidden{display:none;}
+#modal{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:32px 40px;max-width:440px;width:90%;text-align:center;display:flex;flex-direction:column;gap:16px;}
+#modal h2{font-size:16px;color:var(--text);font-weight:600;}
+#modal p{font-size:13px;color:var(--dim);line-height:1.6;}
+#modal .modal-note{font-size:11px;color:var(--dim);opacity:.7;}
+#modal .modal-error{color:#e05252;font-size:13px;line-height:1.6;}
+#modal-btn-open{align-self:center;padding:8px 24px;font-size:13px;}
 #folder-path{font-size:11px;color:var(--dim);font-family:'Consolas','Cascadia Code',monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:40px;}
 .player-col{display:flex;flex-direction:column;gap:3px;min-width:130px;}
 .p-input{width:100%;padding:2px 5px;background:#2d2d2d;border:1px solid #555;border-bottom:2px solid #555;color:var(--text);border-radius:2px;font-size:12px;font-family:'Consolas','Cascadia Code',monospace;}
@@ -68,15 +76,21 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 #status{font-size:11px;color:var(--dim);padding:3px 10px;background:var(--bg2);border-bottom:1px solid var(--border2);}
 .save-ok{color:#4ec9b0 !important;}
 .warn{color:#dcdcaa !important;}
-.no-api{padding:24px;color:#e05252;font-family:monospace;line-height:1.8;}
 </style>
 </head>
 <body>
+<div id="modal-overlay">
+  <div id="modal">
+    <h2>&#128194; Select Working Folder</h2>
+    <p id="modal-body">Open the folder containing this file.</p>
+    <p class="modal-note">Requires Chrome or Edge 86+. Firefox is not supported.</p>
+    <button class="btn" id="modal-btn-open">Open Folder</button>
+  </div>
+</div>
 <div id="toolbar">
-  <button class="btn" id="btn-open">&#128194; Open Folder</button>
-  <span id="folder-path">No folder open — pick the folder containing this file</span>
-  <button class="btn btn-reload" id="btn-reset">&#8635; Reload disk</button>
-  <button class="btn btn-save" id="btn-save">&#128190; Save</button>
+  <span id="folder-path">No folder selected</span>
+  <button class="btn btn-reload" id="btn-reset">Reload from Disk</button>
+  <button class="btn btn-save" id="btn-save">Save</button>
 </div>
 <div id="col-header">
   <div class="ch-spacer">
@@ -442,7 +456,7 @@ async function loadFromDir(){
   }
 }
 async function saveFiles(){
-  if(!dirHandle){alert('Open a folder first.');return;}
+  if(!dirHandle){showModal();return;}
   const n=getNames();
   for(let i=0;i<3;i++){await wf(dirHandle,`${i}_${n[i]}.ini`,formatIni(i,false));await wf(dirHandle,`${i}_${n[i]}_SandboxVars.lua`,formatLua(i,false));}
   await wf(dirHandle,'averages.ini',formatIni(null,true));
@@ -459,7 +473,7 @@ function buildTree(){
     const fk='file_'+f.id;if(collapsed[fk]===undefined) collapsed[fk]=false;
     const fDiv=document.createElement('div');
     const fRow=document.createElement('div');fRow.className='t-row';
-    const fIco=document.createElement('span');fIco.className='t-icon';fIco.id='ico_'+fk;fIco.textContent=collapsed[fk]?'▸':'▾';
+    const fIco=document.createElement('span');fIco.className='t-icon';fIco.id='ico_'+fk;fIco.textContent=collapsed[fk]?'▶':'▼';
     const fLbl=document.createElement('span');fLbl.className='lbl-file';fLbl.textContent=f.label;
     fRow.append(mkI(),fIco,fLbl);
     const fCh=document.createElement('div');fCh.className='t-children'+(collapsed[fk]?' collapsed':'');
@@ -470,7 +484,7 @@ function buildTree(){
       const gk='grp_'+f.id+'_'+g.id;if(collapsed[gk]===undefined) collapsed[gk]=false;
       const gDiv=document.createElement('div');
       const gRow=document.createElement('div');gRow.className='t-row';
-      const gIco=document.createElement('span');gIco.className='t-icon';gIco.id='ico_'+gk;gIco.textContent=collapsed[gk]?'▸':'▾';
+      const gIco=document.createElement('span');gIco.className='t-icon';gIco.id='ico_'+gk;gIco.textContent=collapsed[gk]?'▶':'▼';
       const gLbl=document.createElement('span');gLbl.className='lbl-group';
       gLbl.textContent=g.label;
       if(g.b42){const t=document.createElement('span');t.className='b42-tag';t.textContent='B42';gLbl.appendChild(t);}
@@ -524,20 +538,25 @@ function rebuildSliders(){
   }
 }
 
-function tog(k,ch,ico){collapsed[k]=!collapsed[k];ico.textContent=collapsed[k]?'▸':'▾';ch.classList.toggle('collapsed',collapsed[k]);}
+function tog(k,ch,ico){collapsed[k]=!collapsed[k];ico.textContent=collapsed[k]?'▶':'▼';ch.classList.toggle('collapsed',collapsed[k]);}
 
-// ─── EVENTS ───────────────────────────────────────────────────────────
-document.getElementById('btn-open').onclick=async()=>{
-  if(!window.showDirectoryPicker){document.getElementById('tree').innerHTML='<div class="no-api">File System Access API not available.<br>Use Chrome or Edge 86+. Firefox does not support showDirectoryPicker().</div>';return;}
+// ─── MODAL ────────────────────────────────────────────────────────────
+function showModal(){document.getElementById('modal-overlay').classList.remove('hidden');}
+function hideModal(){document.getElementById('modal-overlay').classList.add('hidden');}
+
+async function openFolder(){
   try{
     dirHandle=await window.showDirectoryPicker({mode:'readwrite'});
     document.getElementById('folder-path').textContent=dirHandle.name+' /';
     setStatus('Loading from '+dirHandle.name+'...');
+    hideModal();
     await loadFromDir();buildTree();
     setStatus('Loaded from '+dirHandle.name+' — '+new Date().toLocaleTimeString());
   }catch(e){if(e.name!=='AbortError') setStatus('Error: '+e.message);}
-};
+}
 
+// ─── EVENTS ───────────────────────────────────────────────────────────
+document.getElementById('modal-btn-open').onclick=openFolder;
 document.getElementById('btn-save').onclick=saveFiles;
 
 document.getElementById('btn-reset').onclick=async()=>{
@@ -546,8 +565,7 @@ document.getElementById('btn-reset').onclick=async()=>{
     initValues();await loadFromDir();rebuildSliders();
     setStatus('Reloaded from '+dirHandle.name+' — '+new Date().toLocaleTimeString());
   } else {
-    if(!confirm('No folder open — reset to schema defaults?')) return;
-    initValues();buildTree();setStatus('Reset to schema defaults');
+    showModal();
   }
 };
 
@@ -556,7 +574,10 @@ document.getElementById('btn-reset').onclick=async()=>{
 });
 
 if(!window.showDirectoryPicker){
-  document.getElementById('tree').innerHTML='<div class="no-api">File System Access API required.<br>Open this file in Chrome or Edge 86+.<br>Firefox does not support showDirectoryPicker().</div>';
+  document.getElementById('modal-body').innerHTML='This tool requires the File System Access API.<br>Open in <strong>Chrome or Edge 86+</strong> — Firefox is not supported.';
+  document.getElementById('modal-body').className='modal-error';
+  document.getElementById('modal-btn-open').disabled=true;
+  document.getElementById('modal-btn-open').style.opacity='0.4';
 } else {
   buildTree();
 }
