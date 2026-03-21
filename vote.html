@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>PZ Vote — Server Settings</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -15,7 +16,7 @@
   --accent:#007acc;
   --ind:16px;--icon-w:20px;--key-w:220px;--val-w:80px;--avg-w:76px;
   --key-offset:288px;
-  --row-h:26px;--toolbar-h:54px;--header-h:28px;
+  --row-h:26px;--toolbar-h:38px;--header-h:28px;
 }
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:auto;}
 #toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300;min-height:var(--toolbar-h);flex-wrap:wrap;}
@@ -34,12 +35,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;background:var(-
 .p-preset{width:100%;padding:2px 4px;background:#2d2d2d;border:1px solid #444;color:var(--text);border-radius:2px;font-size:10px;cursor:pointer;font-family:inherit;}
 .p-preset:focus{outline:none;border-color:var(--accent);}
 select option{background:#2d2d2d;color:var(--text);}
-#col-header{display:flex;align-items:center;background:var(--bg4);border-bottom:1px solid var(--border);position:sticky;top:var(--toolbar-h);z-index:290;font-size:11px;min-height:var(--header-h);min-width:900px;}
-.ch-spacer{width:var(--key-offset);flex-shrink:0;}
-.ch-p{flex:1;min-width:0;text-align:center;font-family:'Consolas','Cascadia Code',monospace;font-weight:700;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#ch0{color:var(--p0);}
-#ch1{color:var(--p1);}
-#ch2{color:var(--p2);}
+#col-header{display:flex;align-items:stretch;background:var(--bg4);border-bottom:1px solid var(--border);position:sticky;top:var(--toolbar-h);z-index:290;font-size:11px;min-height:var(--header-h);min-width:900px;}
+.ch-spacer{width:var(--key-offset);flex-shrink:0;display:flex;flex-direction:column;justify-content:space-around;padding:5px 8px;gap:3px;}
+.ch-label{font-family:'Consolas','Cascadia Code',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;}
+.ch-p{flex:1;min-width:100px;display:flex;flex-direction:column;gap:3px;padding:5px 5px;border-left:1px solid var(--border2);}
 .ch-avg{width:var(--avg-w);flex-shrink:0;text-align:right;color:var(--avg);padding-right:12px;text-transform:uppercase;letter-spacing:.06em;font-size:10px;}
 #tree{min-width:900px;}
 .t-children.collapsed{display:none;}
@@ -75,30 +74,30 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 <body>
 <div id="toolbar">
   <button class="btn" id="btn-open">&#128194; Open Folder</button>
-  <span id="folder-path">No folder open</span>
-  <div class="player-col">
-    <input class="p-input" id="p0" value="Diesel">
-    <select class="p-preset" id="preset0"><option value="">&#8212; preset &#8212;</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option></select>
-  </div>
-  <div class="player-col">
-    <input class="p-input" id="p1" value="GunFox">
-    <select class="p-preset" id="preset1"><option value="">&#8212; preset &#8212;</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option></select>
-  </div>
-  <div class="player-col">
-    <input class="p-input" id="p2" value="SnowCrash">
-    <select class="p-preset" id="preset2"><option value="">&#8212; preset &#8212;</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option></select>
-  </div>
+  <span id="folder-path">No folder open — pick the folder containing this file</span>
   <button class="btn btn-reload" id="btn-reset">&#8635; Reload disk</button>
   <button class="btn btn-save" id="btn-save">&#128190; Save</button>
 </div>
 <div id="col-header">
-  <div class="ch-spacer"></div>
-  <div class="ch-p" id="ch0">Diesel</div>
-  <div class="ch-p" id="ch1">GunFox</div>
-  <div class="ch-p" id="ch2">SnowCrash</div>
+  <div class="ch-spacer">
+    <span class="ch-label">Player name</span>
+    <span class="ch-label">Preset</span>
+  </div>
+  <div class="ch-p">
+    <input class="p-input" id="p0" value="Diesel">
+    <select class="p-preset" id="preset0"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select>
+  </div>
+  <div class="ch-p">
+    <input class="p-input" id="p1" value="GunFox">
+    <select class="p-preset" id="preset1"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select>
+  </div>
+  <div class="ch-p">
+    <input class="p-input" id="p2" value="SnowCrash">
+    <select class="p-preset" id="preset2"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select>
+  </div>
   <div class="ch-avg">avg</div>
 </div>
-<div id="status">Open a folder to load or create settings files.</div>
+<div id="status">Click "Open Folder" and select the folder containing this file — settings will be saved there.</div>
 <div id="tree"></div>
 <script>
 // ── SCHEMA ───────────────────────────────────────────────────────────
@@ -326,7 +325,13 @@ initValues();
 
 // ─── PRESET APPLICATION ───────────────────────────────────────────────
 function applyPreset(pi,name){
-  if(!name) return;
+  if(name==='' || name===undefined) {
+    for(const f of SCHEMA) for(const g of f.groups) for(const s of g.settings) values[pi][f.id][s.key]=s.def;
+    rebuildSliders();
+    const pname=document.getElementById('p'+pi).value||'Player '+(pi+1);
+    setStatus(`Reset ${pname} to defaults`);
+    return;
+  }
   const pr=PRESETS[name]; if(!pr) return;
   if(pr.sandbox) for(const[k,v] of Object.entries(pr.sandbox)){const s=settingMap['sandbox']?.[k];if(s) values[pi]['sandbox'][k]=clamp(s,v);}
   if(pr.ini) for(const[k,v] of Object.entries(pr.ini)){const s=settingMap['ini']?.[k];if(s) values[pi]['ini'][k]=clamp(s,v);}
@@ -334,7 +339,6 @@ function applyPreset(pi,name){
   const pname=document.getElementById('p'+pi).value||'Player '+(pi+1);
   const note=pr.note?` — ${pr.note}`:'';
   setStatus(`"${name}" applied to ${pname}${note}`,'warn');
-  setTimeout(()=>document.getElementById('preset'+pi).value='',120);
 }
 
 // ─── HELPERS ──────────────────────────────────────────────────────────
@@ -361,7 +365,7 @@ function fillGrad(el){
 }
 function getNames(){return[0,1,2].map(i=>document.getElementById('p'+i).value.trim()||'Player'+(i+1));}
 function setStatus(m,c){const e=document.getElementById('status');e.textContent=m;e.className=c||'';}
-function updateColHeader(){const n=getNames();['ch0','ch1','ch2'].forEach((id,i)=>document.getElementById(id).textContent=n[i]);}
+
 function mkI(){const s=document.createElement('span');s.className='t-indent';return s;}
 
 // ─── PARSE ────────────────────────────────────────────────────────────
@@ -494,6 +498,7 @@ function buildTree(){
             const v=parseFloat(rng.value);values[p][f.id][s.key]=v;vs.textContent=fmtDisplay(s,v);fillGrad(rng);
             const ae=document.getElementById(aid);
             if(ae){ae.textContent=fmtDisplay(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]));}
+            document.getElementById('preset'+p).value='custom';
           };
           col.append(vs,rng);wrap.appendChild(col);
         }
@@ -547,7 +552,6 @@ document.getElementById('btn-reset').onclick=async()=>{
 };
 
 [0,1,2].forEach(i=>{
-  document.getElementById('p'+i).addEventListener('input',updateColHeader);
   document.getElementById('preset'+i).addEventListener('change',e=>applyPreset(i,e.target.value));
 });
 
