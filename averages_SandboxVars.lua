@@ -5,8 +5,8 @@ SandboxVars = {
     StartMonth = 7,
     StartDay = 9,
     StartTime = 2,
-    WaterShut = 3,
-    ElecShut = 3,
+    WaterShut = 2,
+    ElecShut = 2,
     WaterShutModifier = -1,
     ElecShutModifier = -1,
 
@@ -58,7 +58,7 @@ SandboxVars = {
     HoursForWorldItemRemoval = 24,
 
     -- Character & Survival
-    XpMultiplier = 1.3,
+    XpMultiplier = 1,
     StatsDecrease = 3,
     EndRegen = 3,
     InjurySeverity = 2,
@@ -94,8 +94,8 @@ SandboxVars = {
     VehicleStoryChance = 3,
     ZoneStoryChance = 3,
     AnnotatedMapChance = 4,
-    Alarm = 4,
-    LockedHouses = 4,
+    Alarm = 5,
+    LockedHouses = 5,
 
     -- Vehicles
     CarSpawnRate = 3,
@@ -133,8 +133,8 @@ SandboxVars = {
     -- [B42] Animals & Livestock
     AnimalAgingSpeed = 3, -- B42 (verify key name)
     MilkIncreaseSpeed = 3, -- B42 (verify key name)
-    AnimalSpawnMultiplier = 1.2, -- B42 (verify key name)
-    WildAnimalSpawnMultiplier = 1.2, -- B42 (verify key name)
+    AnimalSpawnMultiplier = 1, -- B42 (verify key name)
+    WildAnimalSpawnMultiplier = 1, -- B42 (verify key name)
 
     -- [B42] Crafting & Resources
     CraftingYieldMultiplier = 1, -- B42 (verify key name)
