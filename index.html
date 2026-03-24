@@ -139,8 +139,8 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
 <div id="tree"></div>
 <script>
 // ── SCHEMA ───────────────────────────────────────────────────────────
-// b42:true = B42-only key; key name may need verification once B42
-// reaches stable. Check your actual SandboxVars.lua if values don't load.
+// luaTable: key is nested under this Lua table in SandboxVars output
+// lootFloat: display uses named snap labels (0.05=Insane … 3.0=Abundant)
 const SCHEMA=[
 {id:'ini',label:'server.ini',ext:'ini',groups:[
   {id:'pvp',label:'PVP & Safety',settings:[
@@ -167,63 +167,74 @@ const SCHEMA=[
     {key:'StartMonth',label:'Start month',min:1,max:12,step:1,def:7,enum:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']},
     {key:'StartDay',label:'Start day',min:1,max:28,step:1,def:9},
     {key:'StartTime',label:'Start time',min:1,max:8,step:1,def:2,enum:['7 AM','9 AM','12 PM','2 PM','5 PM','9 PM','12 AM','2 AM']},
-    {key:'WaterShut',label:'Water shutoff',min:1,max:7,step:1,def:2,enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months']},
-    {key:'ElecShut',label:'Electricity shutoff',min:1,max:7,step:1,def:2,enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months']},
+    {key:'WaterShut',label:'Water shutoff',min:1,max:9,step:1,def:2,enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months','6-12 months','Disabled']},
+    {key:'ElecShut',label:'Electricity shutoff',min:1,max:9,step:1,def:2,enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months','6-12 months','Disabled']},
     {key:'WaterShutModifier',label:'Water shutoff exact day',min:-1,max:365,step:1,def:-1},
     {key:'ElecShutModifier',label:'Elec shutoff exact day',min:-1,max:365,step:1,def:-1},
   ]},
   {id:'zpop',label:'Zombie Population',settings:[
-    {key:'Zombies',label:'Population preset',min:1,max:5,step:1,def:4,enum:['Insane','Very high','High','Normal','Low']},
+    {key:'Zombies',label:'Zombie count',min:1,max:6,step:1,def:4,enum:['Insane','Very high','High','Normal','Low','None']},
     {key:'Distribution',label:'Distribution',min:1,max:2,step:1,def:1,enum:['Urban focused','Uniform']},
-    {key:'PopulationStartMultiplier',label:'Pop start multi',min:0,max:4,step:0.1,def:1.0},
-    {key:'PopulationPeakMultiplier',label:'Pop peak multi',min:0,max:4,step:0.1,def:1.5},
-    {key:'PopulationPeakDay',label:'Pop peak day',min:0,max:365,step:1,def:28},
+    {key:'PopulationMultiplier',label:'Pop multiplier',luaTable:'ZombieConfig',min:0,max:4,step:0.1,def:0.65},
+    {key:'PopulationStartMultiplier',label:'Pop start multi',luaTable:'ZombieConfig',min:0,max:4,step:0.1,def:1.0},
+    {key:'PopulationPeakMultiplier',label:'Pop peak multi',luaTable:'ZombieConfig',min:0,max:4,step:0.1,def:1.5},
+    {key:'PopulationPeakDay',label:'Pop peak day',luaTable:'ZombieConfig',min:0,max:365,step:1,def:28},
   ]},
   {id:'zchar',label:'Zombie Character',settings:[
-    {key:'Speed',label:'Speed',min:1,max:3,step:1,def:2,enum:['Sprinters','Fast shamblers','Shamblers']},
-    {key:'Strength',label:'Strength',min:1,max:3,step:1,def:2,enum:['Superhuman','Normal','Weak']},
-    {key:'Toughness',label:'Toughness',min:1,max:3,step:1,def:2,enum:['Tough','Normal','Fragile']},
-    {key:'Transmission',label:'Transmission',min:1,max:3,step:1,def:1,enum:['Blood + saliva','Saliva only','Everyone infected']},
-    {key:'Mortality',label:'Infection mortality',min:1,max:6,step:1,def:5,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days','1-2 weeks']},
-    {key:'Reanimate',label:'Reanimate time',min:1,max:5,step:1,def:3,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days']},
-    {key:'Cognition',label:'Cognition',min:1,max:3,step:1,def:3,enum:['Navigate + doors','Navigate','Basic']},
-    {key:'Memory',label:'Memory',min:1,max:4,step:1,def:2,enum:['Long','Normal','Short','None']},
-    {key:'Sight',label:'Sight',min:1,max:3,step:1,def:2,enum:['Eagle','Normal','Poor']},
-    {key:'Hearing',label:'Hearing',min:1,max:3,step:1,def:2,enum:['Pinpoint','Normal','Poor']},
-    {key:'ThumpNoChasing',label:'Thump when not chasing',min:0,max:1,step:1,def:0,bool:true},
-    {key:'ThumpOnConstruction',label:'Thump player builds',min:0,max:1,step:1,def:1,bool:true},
-    {key:'ActiveOnly',label:'Active period',min:1,max:2,step:1,def:1,enum:['Both','Night only']},
-    {key:'ZombiesDragDown',label:'Drag down attack',min:0,max:1,step:1,def:1,bool:true},
-    {key:'ZombiesFenceLunge',label:'Fence lunge',min:0,max:1,step:1,def:1,bool:true},
-    {key:'DisableFakeDead',label:'Fake dead zombies',min:1,max:2,step:1,def:1,enum:['World only','World + kills']},
+    {key:'Speed',label:'Speed',luaTable:'ZombieLore',min:1,max:4,step:1,def:4,enum:['Sprinters','Fast shamblers','Shamblers','Random']},
+    {key:'Strength',label:'Strength',luaTable:'ZombieLore',min:1,max:4,step:1,def:2,enum:['Superhuman','Normal','Weak','Random']},
+    {key:'Toughness',label:'Toughness',luaTable:'ZombieLore',min:1,max:4,step:1,def:4,enum:['Tough','Normal','Fragile','Random']},
+    {key:'Transmission',label:'Transmission',luaTable:'ZombieLore',min:1,max:4,step:1,def:1,enum:['Blood + saliva','Saliva only','Everyone infected','None']},
+    {key:'Mortality',label:'Infection mortality',luaTable:'ZombieLore',min:1,max:7,step:1,def:5,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days','1-2 weeks','Never']},
+    {key:'Reanimate',label:'Reanimate time',luaTable:'ZombieLore',min:1,max:6,step:1,def:3,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days','1-2 weeks']},
+    {key:'Cognition',label:'Cognition',luaTable:'ZombieLore',min:1,max:4,step:1,def:3,enum:['Navigate + doors','Navigate','Basic','Random']},
+    {key:'Memory',label:'Memory',luaTable:'ZombieLore',min:1,max:6,step:1,def:2,enum:['Long','Normal','Short','None','Random','Random (normal-none)']},
+    {key:'Sight',label:'Sight',luaTable:'ZombieLore',min:1,max:5,step:1,def:5,enum:['Eagle','Normal','Poor','Random','Random (normal-poor)']},
+    {key:'Hearing',label:'Hearing',luaTable:'ZombieLore',min:1,max:5,step:1,def:5,enum:['Pinpoint','Normal','Poor','Random','Random (normal-poor)']},
+    {key:'ThumpNoChasing',label:'Environmental attacks',luaTable:'ZombieLore',min:0,max:1,step:1,def:0,bool:true},
+    {key:'ThumpOnConstruction',label:'Damage construction',luaTable:'ZombieLore',min:0,max:1,step:1,def:1,bool:true},
+    {key:'ActiveOnly',label:'Day/night zombie speed',luaTable:'ZombieLore',min:1,max:3,step:1,def:1,enum:['Both','Night only','Day only']},
+    {key:'ZombiesDragDown',label:'Drag down',luaTable:'ZombieLore',min:0,max:1,step:1,def:1,bool:true},
+    {key:'ZombiesFenceLunge',label:'Zombie lunge',luaTable:'ZombieLore',min:0,max:1,step:1,def:1,bool:true},
+    {key:'DisableFakeDead',label:'Fake dead reanimation',luaTable:'ZombieLore',min:1,max:3,step:1,def:1,enum:['World zombies','World + combat','Never']},
   ]},
   {id:'zresp',label:'Zombie Respawn',settings:[
-    {key:'RespawnHours',label:'Respawn hrs (0=off)',min:0,max:8760,step:1,def:72},
-    {key:'RespawnUnseenHours',label:'Min unseen hrs',min:0,max:720,step:1,def:16},
-    {key:'RespawnMultiplier',label:'Respawn multiplier',min:0,max:1,step:0.01,def:0.1},
+    {key:'RespawnHours',label:'Respawn hrs (0=off)',luaTable:'ZombieConfig',min:0,max:8760,step:1,def:0},
+    {key:'RespawnUnseenHours',label:'Min unseen hrs',luaTable:'ZombieConfig',min:0,max:720,step:1,def:0},
+    {key:'RespawnMultiplier',label:'Respawn multiplier',luaTable:'ZombieConfig',min:0,max:1,step:0.01,def:0},
   ]},
   {id:'loot',label:'Loot by Category',settings:[
-    {key:'FoodLoot',label:'Food',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'CannedFoodLoot',label:'Canned food',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'LiteratureLoot',label:'Literature / books',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'SurvivalGearsLoot',label:'Survival gear',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'MedicalLoot',label:'Medical',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'WeaponLoot',label:'Melee weapons',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'RangedWeaponLoot',label:'Ranged weapons',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'AmmoLoot',label:'Ammo',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'MechanicsLoot',label:'Mechanics',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
-    {key:'OtherLoot',label:'Other / foraging',min:1,max:6,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common']},
+    {key:'FoodLootNew',label:'Perishable food',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'CannedFoodLootNew',label:'Non-perishable food',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'SkillBookLoot',label:'Skill books',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'RecipeResourceLoot',label:'Recipe resources',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'LiteratureLootNew',label:'Other literature',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'SurvivalGearsLootNew',label:'Survival essentials',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'MedicalLootNew',label:'Medical',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'WeaponLootNew',label:'Melee weapons',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'RangedWeaponLootNew',label:'Ranged weapons',lootFloat:true,min:0,max:3,step:0.05,def:2.0},
+    {key:'AmmoLootNew',label:'Ammo',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'MechanicsLootNew',label:'Mechanics',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'ClothingLootNew',label:'Clothing',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'ContainerLootNew',label:'Bags',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'KeyLootNew',label:'Keys',lootFloat:true,min:0,max:3,step:0.05,def:0.4},
+    {key:'MediaLootNew',label:'Media',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'MementoLootNew',label:'Mementos',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'CookwareLootNew',label:'Cooking',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'MaterialLootNew',label:'Material',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'FarmingLootNew',label:'Farming',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'ToolLootNew',label:'Tools',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
+    {key:'OtherLootNew',label:'Other / foraging',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
   ]},
   {id:'lresp',label:'Loot Respawn & Cleanup',settings:[
-    {key:'LootRespawn',label:'Container loot respawn',min:1,max:4,step:1,def:1,enum:['None','Every day','Every week','Every month']},
     {key:'SeenHoursPreventLootRespawn',label:'Visited no-respawn hrs',min:0,max:720,step:1,def:0},
-    {key:'HoursForWorldItemRemoval',label:'Ground item removal (0=never)',min:0,max:2160,step:1,def:24},
+    {key:'HoursForWorldItemRemoval',label:'Ground item removal hrs (0=never)',min:0,max:2160,step:1,def:24},
   ]},
   {id:'char',label:'Character & Survival',settings:[
-    {key:'XpMultiplier',label:'XP multiplier',min:0.1,max:10,step:0.1,def:1.0},
-    {key:'StatsDecrease',label:'Stats decrease rate',min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
-    {key:'EndRegen',label:'Endurance regen',min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
-    {key:'InjurySeverity',label:'Injury severity',min:1,max:2,step:1,def:2,enum:['Low','Normal']},
+    {key:'Global',label:'XP multiplier (global)',luaTable:'MultiplierConfig',min:0.1,max:10,step:0.1,def:1.0},
+    {key:'StatsDecrease',label:'Stats decrease rate',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
+    {key:'EndRegen',label:'Endurance regen',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
+    {key:'InjurySeverity',label:'Injury severity',min:1,max:3,step:1,def:2,enum:['Low','Normal','High']},
     {key:'BoneFracture',label:'Bone fractures',min:0,max:1,step:1,def:1,bool:true},
     {key:'CharacterFreePoints',label:'Free trait points',min:-100,max:100,step:1,def:0},
     {key:'MultiHitZombies',label:'Multi-hit zombies',min:0,max:1,step:1,def:0,bool:true},
@@ -231,75 +242,76 @@ const SCHEMA=[
     {key:'AttackBlockMovements',label:'Attack blocks movement',min:0,max:1,step:1,def:1,bool:true},
   ]},
   {id:'env',label:'Environment',settings:[
-    {key:'Temperature',label:'Temperature',min:1,max:4,step:1,def:3,enum:['Very cold','Cold','Normal','Hot']},
-    {key:'Rain',label:'Rain frequency',min:1,max:4,step:1,def:3,enum:['Very dry','Dry','Normal','Rainy']},
-    {key:'NightDarkness',label:'Night darkness',min:1,max:4,step:1,def:2,enum:['Pitch black','Dark','Normal','Bright']},
-    {key:'NightLength',label:'Night length',min:1,max:4,step:1,def:3,enum:['Always night','Long','Normal','Short']},
-    {key:'ErosionSpeed',label:'Erosion speed',min:1,max:4,step:1,def:3,enum:['Very fast (20d)','Fast (50d)','Normal (100d)','Slow (200d)']},
+    {key:'Temperature',label:'Temperature',min:1,max:5,step:1,def:3,enum:['Very cold','Cold','Normal','Hot','Very hot']},
+    {key:'Rain',label:'Rain frequency',min:1,max:5,step:1,def:3,enum:['Very dry','Dry','Normal','Rainy','Very rainy']},
+    {key:'NightDarkness',label:'Night darkness',min:1,max:4,step:1,def:3,enum:['Pitch black','Dark','Normal','Bright']},
+    {key:'NightLength',label:'Night length',min:1,max:5,step:1,def:3,enum:['Always night','Long','Normal','Short','Always day']},
+    {key:'ErosionSpeed',label:'Erosion speed',min:1,max:5,step:1,def:3,enum:['Very fast (20d)','Fast (50d)','Normal (100d)','Slow (200d)','Very slow (500d)']},
     {key:'FireSpread',label:'Fire spreads',min:0,max:1,step:1,def:1,bool:true},
     {key:'TimeSinceApo',label:'Months since apo start',min:1,max:12,step:1,def:1},
   ]},
   {id:'farm',label:'Farming & Nature',settings:[
-    {key:'Farming',label:'Plant growth speed',min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
-    {key:'NatureAbundance',label:'Nature abundance',min:1,max:4,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant']},
-    {key:'PlantResilience',label:'Plant resilience',min:1,max:4,step:1,def:3,enum:['Very high','High','Normal','Low']},
-    {key:'PlantAbundance',label:'Plant yield',min:1,max:4,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant']},
-    {key:'FoodRotSpeed',label:'Food rot speed',min:1,max:4,step:1,def:3,enum:['Very fast','Fast','Normal','Slow']},
-    {key:'FridgeFactor',label:'Fridge effectiveness',min:1,max:4,step:1,def:3,enum:['Very low','Low','Normal','High']},
+    {key:'Farming',label:'Plant growth speed',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
+    {key:'NatureAbundance',label:'Nature abundance',min:1,max:5,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant','Very abundant']},
+    {key:'PlantResilience',label:'Plant resilience',min:1,max:5,step:1,def:3,enum:['Very high','High','Normal','Low','Very low']},
+    {key:'PlantAbundance',label:'Plant yield',min:1,max:5,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant','Very abundant']},
+    {key:'FishAbundance',label:'Fishing abundance',min:1,max:5,step:1,def:2,enum:['Very poor','Poor','Normal','Abundant','Very abundant']},
+    {key:'FoodRotSpeed',label:'Food rot speed',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
+    {key:'FridgeFactor',label:'Fridge effectiveness',min:1,max:6,step:1,def:3,enum:['Very low','Low','Normal','High','Very high','No decay']},
     {key:'CompostTime',label:'Compost time',min:1,max:7,step:1,def:2,enum:['1 week','2 weeks','3 weeks','4 weeks','6 weeks','8 weeks','10 weeks']},
   ]},
   {id:'meta',label:'Meta Events',settings:[
-    {key:'Helicopter',label:'Helicopter events',min:1,max:3,step:1,def:2,enum:['Never','Once','Sometimes']},
-    {key:'MetaEvent',label:'Meta events',min:1,max:2,step:1,def:2,enum:['Never','Sometimes']},
-    {key:'GeneratorSpawning',label:'Generator spawn',min:1,max:4,step:1,def:3,enum:['Extremely rare','Rare','Sometimes','Often']},
-    {key:'SurvivorHouseChance',label:'Survivor house',min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+    {key:'Helicopter',label:'Helicopter events',min:1,max:4,step:1,def:2,enum:['Never','Once','Sometimes','Often']},
+    {key:'MetaEvent',label:'Meta events',min:1,max:3,step:1,def:2,enum:['Never','Sometimes','Often']},
+    {key:'GeneratorSpawning',label:'Generator spawn',min:1,max:7,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common','Abundant']},
+    {key:'SurvivorHouseChance',label:'Survivor house',min:1,max:7,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often','Always tries']},
     {key:'VehicleStoryChance',label:'Vehicle story',min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
     {key:'ZoneStoryChance',label:'Zone story',min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
-    {key:'AnnotatedMapChance',label:'Annotated maps',min:1,max:5,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
-    {key:'Alarm',label:'Building alarms',min:1,max:5,step:1,def:5,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
-    {key:'LockedHouses',label:'Locked houses',min:1,max:5,step:1,def:5,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+    {key:'AnnotatedMapChance',label:'Annotated maps',min:1,max:6,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
+    {key:'Alarm',label:'House alarms',min:1,max:6,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
+    {key:'LockedHouses',label:'Locked houses',min:1,max:6,step:1,def:6,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
   ]},
   {id:'veh',label:'Vehicles',settings:[
-    {key:'CarSpawnRate',label:'Car spawn rate',min:1,max:4,step:1,def:3,enum:['None','Very low','Low','Normal']},
-    {key:'ChanceHasGas',label:'Chance has gas',min:1,max:2,step:1,def:1,enum:['Low','Normal']},
-    {key:'InitialGas',label:'Car initial gas',min:1,max:5,step:1,def:2,enum:['Very low','Low','Normal','High','Very high']},
-    {key:'FuelStationGas',label:'Fuel station gas',min:1,max:8,step:1,def:5,enum:['Empty','Super low','Very low','Low','Normal','High','Very high','Full']},
+    {key:'CarSpawnRate',label:'Car spawn rate',min:1,max:5,step:1,def:3,enum:['None','Very low','Low','Normal','High']},
+    {key:'ChanceHasGas',label:'Chance has gas',min:1,max:3,step:1,def:1,enum:['Low','Normal','High']},
+    {key:'InitialGas',label:'Car initial gas',min:1,max:6,step:1,def:2,enum:['Very low','Low','Normal','High','Very high','Full']},
+    {key:'FuelStationGasMin',label:'Fuel station min %',min:0,max:1,step:0.05,def:0.0},
+    {key:'FuelStationGasMax',label:'Fuel station max %',min:0,max:1,step:0.05,def:0.8},
     {key:'CarGasConsumption',label:'Gas consumption multi',min:0,max:10,step:0.1,def:1.0},
-    {key:'CarGeneralCondition',label:'Car condition',min:1,max:4,step:1,def:2,enum:['Very low','Low','Normal','High']},
-    {key:'LockedCar',label:'Cars locked',min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
-    {key:'TrafficJam',label:'Traffic jams',min:0,max:1,step:1,def:1,bool:true},
+    {key:'CarGeneralCondition',label:'Car condition',min:1,max:5,step:1,def:3,enum:['Very low','Low','Normal','High','Very high']},
+    {key:'LockedCar',label:'Cars locked',min:1,max:6,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
+    {key:'TrafficJam',label:'Car wreck congestion',min:0,max:1,step:1,def:1,bool:true},
     {key:'EnableVehicles',label:'Vehicles enabled',min:0,max:1,step:1,def:1,bool:true},
     {key:'VehicleEasyUse',label:'Easy use (no keys)',min:0,max:1,step:1,def:0,bool:true},
     {key:'ZombieAttractionMultiplier',label:'Engine noise multi',min:0,max:10,step:0.1,def:1.0},
-    {key:'CarAlarm',label:'Car alarm freq',min:1,max:5,step:1,def:2,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
+    {key:'CarAlarm',label:'Car alarm freq',min:1,max:6,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
     {key:'SirenShutoffHours',label:'Siren shutoff hrs (0=never)',min:0,max:168,step:1,def:0},
   ]},
   {id:'corps',label:'Corpses & Blood',settings:[
     {key:'HoursForCorpseRemoval',label:'Corpse removal hrs (-1=never)',min:-1,max:2160,step:1,def:216},
-    {key:'DecayingCorpseHealthImpact',label:'Corpse decay impact',min:1,max:3,step:1,def:3,enum:['None','Low','Normal']},
-    {key:'BloodLevel',label:'Blood level',min:1,max:4,step:1,def:3,enum:['None','Low','Normal','High']},
+    {key:'DecayingCorpseHealthImpact',label:'Corpse decay impact',min:1,max:5,step:1,def:3,enum:['None','Low','Normal','High','Insane']},
+    {key:'BloodLevel',label:'Blood level',min:1,max:5,step:1,def:3,enum:['None','Low','Normal','High','Ultra gore']},
     {key:'ClothingDegradation',label:'Clothing degradation',min:1,max:4,step:1,def:3,enum:['Disabled','Slow','Normal','Fast']},
   ]},
   {id:'misc',label:'Misc & Display',settings:[
     {key:'StarterKit',label:'Starter kit',min:0,max:1,step:1,def:0,bool:true},
-    {key:'AllowMiniMap',label:'Allow minimap',min:0,max:1,step:1,def:0,bool:true},
-    {key:'AllowWorldMap',label:'Allow world map',min:0,max:1,step:1,def:1,bool:true},
-    {key:'MapAllKnown',label:'Map all known at start',min:0,max:1,step:1,def:0,bool:true},
+    {key:'AllowMiniMap',label:'Allow minimap',luaTable:'Map',min:0,max:1,step:1,def:0,bool:true},
+    {key:'AllowWorldMap',label:'Allow world map',luaTable:'Map',min:0,max:1,step:1,def:1,bool:true},
+    {key:'MapAllKnown',label:'Map all known at start',luaTable:'Map',min:0,max:1,step:1,def:0,bool:true},
     {key:'Nutrition',label:'Nutrition system',min:0,max:1,step:1,def:1,bool:true},
     {key:'EnablePoisoning',label:'Food poisoning',min:0,max:1,step:1,def:1,bool:true},
-    {key:'GeneratorFuelConsumption',label:'Generator fuel/hr',min:0,max:10,step:0.1,def:1.0},
-    {key:'LightBulbLifespan',label:'Lightbulb lifespan (0=never)',min:0,max:10,step:0.1,def:1.0},
+    {key:'GeneratorFuelConsumption',label:'Generator fuel/hr',min:0,max:10,step:0.1,def:0.1},
+    {key:'LightBulbLifespan',label:'Lightbulb lifespan (0=never)',min:0,max:10,step:0.1,def:2.0},
     {key:'AllowExteriorGenerator',label:'Generators work outside',min:0,max:1,step:1,def:1,bool:true},
-    {key:'ConstructionBonusPoints',label:'Construction HP bonus',min:1,max:4,step:1,def:3,enum:['None','Low','Normal','High']},
+    {key:'ConstructionBonusPoints',label:'Construction HP bonus',min:1,max:5,step:1,def:3,enum:['None','Low','Normal','High','Very high']},
   ]},
   // ─── B42 ADDITIONS ───────────────────────────────────────────────
-  // Key names derived from WinterNode B42 guide + PZ naming conventions.
-  // Verify against your actual SandboxVars.lua — B42 is still unstable.
   {id:'b42animals',label:'Animals & Livestock',b42:true,settings:[
-    {key:'AnimalAgingSpeed',label:'Animal aging speed',b42:true,min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
-    {key:'MilkIncreaseSpeed',label:'Milk production rate',b42:true,min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
-    {key:'AnimalSpawnMultiplier',label:'Domestic animal spawn multi',b42:true,min:0,max:4,step:0.1,def:1.0},
-    {key:'WildAnimalSpawnMultiplier',label:'Wild animal spawn multi',b42:true,min:0,max:4,step:0.1,def:1.0},
+    {key:'AnimalStatsModifier',label:'Animal stats modifier',b42:true,min:1,max:6,step:1,def:4,enum:['Very fast','Fast','Normal','Slow','Very slow','Stopped']},
+    {key:'AnimalRanchChance',label:'Ranch spawn chance',b42:true,min:1,max:7,step:1,def:5,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often','Always']},
+    {key:'AnimalMatingSeason',label:'Mating seasons',b42:true,min:0,max:1,step:1,def:1,bool:true},
+    {key:'AnimalMetaPredator',label:'Predator meta events',b42:true,min:0,max:1,step:1,def:0,bool:true},
+    {key:'AnimalSoundAttractZombies',label:'Animal sounds attract zombies',b42:true,min:0,max:1,step:1,def:1,bool:true},
   ]},
   {id:'b42craft',label:'Crafting & Resources',b42:true,settings:[
     {key:'CraftingYieldMultiplier',label:'Crafting yield multi',b42:true,min:0.1,max:5,step:0.1,def:1.0},
@@ -308,7 +320,7 @@ const SCHEMA=[
     {key:'PotteryEnabled',label:'Pottery enabled',b42:true,min:0,max:1,step:1,def:1,bool:true},
   ]},
   {id:'b42world',label:'Basements & Darkness',b42:true,settings:[
-    {key:'BasementSpawnFrequency',label:'Basement spawn frequency',b42:true,min:1,max:5,step:1,def:2,enum:['Never','Rare','Sometimes','Often','Always']},
+    {key:'SpawnFrequency',label:'Basement spawn frequency',luaTable:'Basement',b42:true,min:1,max:7,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often','Always']},
     {key:'UndergroundDarkness',label:'Underground darkness',b42:true,min:1,max:3,step:1,def:2,enum:['Pitch black','Dark','Normal']},
   ]},
 ]},
@@ -321,22 +333,22 @@ const SCHEMA=[
 const PRESETS={
   apocalypse:{
     note:null,
-    sandbox:{Speed:2,Strength:2,Toughness:2,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:2,Sight:2,Hearing:2,ZombiesDragDown:1,ZombiesFenceLunge:1,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,DisableFakeDead:1,Zombies:4,PopulationStartMultiplier:1,PopulationPeakMultiplier:1.5,PopulationPeakDay:28,RespawnHours:0,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLoot:4,CannedFoodLoot:4,LiteratureLoot:4,SurvivalGearsLoot:4,MedicalLoot:4,WeaponLoot:4,RangedWeaponLoot:5,AmmoLoot:5,MechanicsLoot:4,OtherLoot:4,XpMultiplier:1,StatsDecrease:3,EndRegen:3,InjurySeverity:2,BoneFracture:1,MultiHitZombies:0,RearVulnerability:3,AttackBlockMovements:1,NightDarkness:2,NightLength:3,Temperature:3,Rain:3,ElecShut:2,WaterShut:2,Farming:3,NatureAbundance:3,PlantResilience:3,PlantAbundance:3,Helicopter:2,MetaEvent:2,GeneratorSpawning:3,CarSpawnRate:3,InitialGas:2,CarGeneralCondition:2,FuelStationGas:5,Alarm:5,LockedHouses:5,AnimalAgingSpeed:3,MilkIncreaseSpeed:3,AnimalSpawnMultiplier:1,WildAnimalSpawnMultiplier:1,BasementSpawnFrequency:2,UndergroundDarkness:2},
+    sandbox:{Zombies:4,Speed:4,Strength:2,Toughness:4,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:2,Sight:5,Hearing:5,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,ZombiesDragDown:1,ZombiesFenceLunge:1,DisableFakeDead:1,PopulationMultiplier:0.65,PopulationStartMultiplier:1.0,PopulationPeakMultiplier:1.5,PopulationPeakDay:28,RespawnHours:0,RespawnUnseenHours:0,RespawnMultiplier:0,FoodLootNew:0.6,CannedFoodLootNew:0.6,SkillBookLoot:0.6,RecipeResourceLoot:0.6,LiteratureLootNew:0.6,SurvivalGearsLootNew:0.6,MedicalLootNew:0.6,WeaponLootNew:0.6,RangedWeaponLootNew:2.0,AmmoLootNew:0.6,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.6,KeyLootNew:0.4,MediaLootNew:0.6,MementoLootNew:0.6,CookwareLootNew:0.6,MaterialLootNew:0.6,FarmingLootNew:0.6,ToolLootNew:0.6,OtherLootNew:0.6,Global:1.0,StatsDecrease:3,EndRegen:3,InjurySeverity:2,BoneFracture:1,MultiHitZombies:0,RearVulnerability:3,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:3,NightLength:3,ErosionSpeed:3,WaterShut:2,ElecShut:2,Farming:3,NatureAbundance:3,PlantResilience:3,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:3,FishAbundance:2,Helicopter:2,MetaEvent:2,GeneratorSpawning:4,SurvivorHouseChance:3,AnnotatedMapChance:4,Alarm:4,LockedHouses:6,CarSpawnRate:3,ChanceHasGas:1,InitialGas:2,FuelStationGasMin:0.0,FuelStationGasMax:0.8,CarGasConsumption:1.0,CarGeneralCondition:3,LockedCar:4,CarAlarm:3,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:3,BloodLevel:3,ClothingDegradation:3,StarterKit:0,AllowMiniMap:0,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:2.0,AllowExteriorGenerator:1,ConstructionBonusPoints:3,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:5,AnimalMatingSeason:1,AnimalMetaPredator:0,AnimalSoundAttractZombies:1},
     ini:{PVP:1,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
   },
   extinction:{
-    note:'Extinction values reconstructed from TIS blog + community sources.',
-    sandbox:{Speed:1,Strength:2,Toughness:2,Transmission:1,Mortality:5,Reanimate:3,Cognition:2,Memory:1,Sight:1,Hearing:1,ZombiesDragDown:1,ZombiesFenceLunge:1,ThumpNoChasing:1,ThumpOnConstruction:1,ActiveOnly:1,DisableFakeDead:2,Zombies:3,PopulationStartMultiplier:1,PopulationPeakMultiplier:2,PopulationPeakDay:14,RespawnHours:72,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLoot:3,CannedFoodLoot:3,LiteratureLoot:4,SurvivalGearsLoot:3,MedicalLoot:3,WeaponLoot:3,RangedWeaponLoot:4,AmmoLoot:3,MechanicsLoot:3,OtherLoot:3,XpMultiplier:1,StatsDecrease:2,EndRegen:4,InjurySeverity:2,BoneFracture:1,MultiHitZombies:0,RearVulnerability:3,AttackBlockMovements:1,NightDarkness:1,NightLength:3,Temperature:3,Rain:3,ElecShut:1,WaterShut:1,Farming:4,NatureAbundance:2,PlantResilience:2,PlantAbundance:2,Helicopter:3,MetaEvent:2,GeneratorSpawning:2,CarSpawnRate:2,InitialGas:1,CarGeneralCondition:1,FuelStationGas:3,Alarm:5,LockedHouses:5,AnimalAgingSpeed:4,MilkIncreaseSpeed:4,AnimalSpawnMultiplier:0.5,WildAnimalSpawnMultiplier:1,BasementSpawnFrequency:2,UndergroundDarkness:1},
+    note:null,
+    sandbox:{Zombies:3,Speed:4,Strength:1,Toughness:1,Transmission:1,Mortality:5,Reanimate:3,Cognition:4,Memory:1,Sight:2,Hearing:2,ThumpNoChasing:1,ThumpOnConstruction:1,ActiveOnly:2,ZombiesDragDown:1,ZombiesFenceLunge:1,DisableFakeDead:2,PopulationMultiplier:1.2,PopulationStartMultiplier:1.5,PopulationPeakMultiplier:2.0,PopulationPeakDay:28,RespawnHours:72,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLootNew:0.4,CannedFoodLootNew:0.4,SkillBookLoot:0.4,RecipeResourceLoot:0.4,LiteratureLootNew:0.6,SurvivalGearsLootNew:0.4,MedicalLootNew:0.4,WeaponLootNew:0.4,RangedWeaponLootNew:0.6,AmmoLootNew:0.2,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.4,KeyLootNew:0.4,MediaLootNew:0.4,MementoLootNew:0.6,CookwareLootNew:0.6,MaterialLootNew:0.6,FarmingLootNew:0.6,ToolLootNew:0.4,OtherLootNew:0.4,Global:1.0,StatsDecrease:3,EndRegen:3,InjurySeverity:3,BoneFracture:1,MultiHitZombies:0,RearVulnerability:3,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:1,NightLength:3,ErosionSpeed:3,WaterShut:2,ElecShut:2,Farming:3,NatureAbundance:2,PlantResilience:4,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:3,FishAbundance:2,Helicopter:3,MetaEvent:3,GeneratorSpawning:2,SurvivorHouseChance:2,AnnotatedMapChance:2,Alarm:5,LockedHouses:6,CarSpawnRate:3,ChanceHasGas:1,InitialGas:2,FuelStationGasMin:0.0,FuelStationGasMax:0.7,CarGasConsumption:1.0,CarGeneralCondition:2,LockedCar:6,CarAlarm:4,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:4,BloodLevel:3,ClothingDegradation:4,StarterKit:0,AllowMiniMap:0,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:1.0,AllowExteriorGenerator:1,ConstructionBonusPoints:3,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:4,AnimalMatingSeason:1,AnimalMetaPredator:1,AnimalSoundAttractZombies:1},
     ini:{PVP:1,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
   },
   outbreak:{
-    note:'Outbreak values reconstructed from TIS blog + community sources.',
-    sandbox:{Speed:2,Strength:2,Toughness:2,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:2,Sight:2,Hearing:2,ZombiesDragDown:1,ZombiesFenceLunge:1,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,DisableFakeDead:1,Zombies:4,PopulationStartMultiplier:1,PopulationPeakMultiplier:1.5,PopulationPeakDay:28,RespawnHours:72,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLoot:5,CannedFoodLoot:5,LiteratureLoot:5,SurvivalGearsLoot:5,MedicalLoot:5,WeaponLoot:5,RangedWeaponLoot:5,AmmoLoot:5,MechanicsLoot:5,OtherLoot:5,XpMultiplier:2,StatsDecrease:3,EndRegen:2,InjurySeverity:1,BoneFracture:0,MultiHitZombies:1,RearVulnerability:2,AttackBlockMovements:1,NightDarkness:3,NightLength:3,Temperature:3,Rain:3,ElecShut:4,WaterShut:4,Farming:2,NatureAbundance:4,PlantResilience:4,PlantAbundance:4,Helicopter:2,MetaEvent:2,GeneratorSpawning:3,CarSpawnRate:4,InitialGas:3,CarGeneralCondition:3,FuelStationGas:6,Alarm:3,LockedHouses:3,AnimalAgingSpeed:2,MilkIncreaseSpeed:2,AnimalSpawnMultiplier:1.5,WildAnimalSpawnMultiplier:1.5,BasementSpawnFrequency:3,UndergroundDarkness:2},
+    note:null,
+    sandbox:{Zombies:4,Speed:4,Strength:2,Toughness:4,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:2,Sight:5,Hearing:5,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,ZombiesDragDown:1,ZombiesFenceLunge:1,DisableFakeDead:1,PopulationMultiplier:0.65,PopulationStartMultiplier:1.0,PopulationPeakMultiplier:1.5,PopulationPeakDay:28,RespawnHours:0,RespawnUnseenHours:0,RespawnMultiplier:0,FoodLootNew:2.0,CannedFoodLootNew:0.6,SkillBookLoot:1.0,RecipeResourceLoot:0.6,LiteratureLootNew:0.8,SurvivalGearsLootNew:0.6,MedicalLootNew:0.6,WeaponLootNew:2.0,RangedWeaponLootNew:2.0,AmmoLootNew:0.6,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.6,KeyLootNew:0.6,MediaLootNew:2.0,MementoLootNew:0.6,CookwareLootNew:2.0,MaterialLootNew:0.6,FarmingLootNew:0.6,ToolLootNew:2.0,OtherLootNew:0.6,Global:1.0,StatsDecrease:3,EndRegen:2,InjurySeverity:1,BoneFracture:1,MultiHitZombies:1,RearVulnerability:3,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:3,NightLength:3,ErosionSpeed:3,WaterShut:3,ElecShut:3,Farming:3,NatureAbundance:3,PlantResilience:2,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:4,FishAbundance:3,Helicopter:2,MetaEvent:2,GeneratorSpawning:5,SurvivorHouseChance:4,AnnotatedMapChance:5,Alarm:4,LockedHouses:6,CarSpawnRate:4,ChanceHasGas:2,InitialGas:3,FuelStationGasMin:0.5,FuelStationGasMax:0.9,CarGasConsumption:1.0,CarGeneralCondition:3,LockedCar:3,CarAlarm:3,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:3,BloodLevel:3,ClothingDegradation:3,StarterKit:0,AllowMiniMap:1,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:2.0,AllowExteriorGenerator:1,ConstructionBonusPoints:4,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:6,AnimalMatingSeason:0,AnimalMetaPredator:0,AnimalSoundAttractZombies:1},
     ini:{PVP:1,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
   },
   rising:{
-    note:'Rising values reconstructed from TIS blog + community sources.',
-    sandbox:{Speed:3,Strength:3,Toughness:3,Transmission:1,Mortality:6,Reanimate:5,Cognition:3,Memory:3,Sight:3,Hearing:3,ZombiesDragDown:0,ZombiesFenceLunge:0,ThumpNoChasing:0,ThumpOnConstruction:0,ActiveOnly:1,DisableFakeDead:1,Zombies:5,PopulationStartMultiplier:0.35,PopulationPeakMultiplier:0.5,PopulationPeakDay:60,RespawnHours:0,RespawnUnseenHours:16,RespawnMultiplier:0.05,FoodLoot:6,CannedFoodLoot:6,LiteratureLoot:5,SurvivalGearsLoot:6,MedicalLoot:5,WeaponLoot:5,RangedWeaponLoot:5,AmmoLoot:5,MechanicsLoot:6,OtherLoot:6,XpMultiplier:2,StatsDecrease:4,EndRegen:1,InjurySeverity:1,BoneFracture:0,MultiHitZombies:1,RearVulnerability:1,AttackBlockMovements:0,NightDarkness:4,NightLength:4,Temperature:3,Rain:3,ElecShut:5,WaterShut:5,Farming:1,NatureAbundance:4,PlantResilience:4,PlantAbundance:4,Helicopter:1,MetaEvent:1,GeneratorSpawning:4,CarSpawnRate:4,InitialGas:4,CarGeneralCondition:4,FuelStationGas:7,Alarm:1,LockedHouses:1,AnimalAgingSpeed:1,MilkIncreaseSpeed:1,AnimalSpawnMultiplier:2,WildAnimalSpawnMultiplier:2,BasementSpawnFrequency:4,UndergroundDarkness:3},
+    note:null,
+    sandbox:{Zombies:5,Speed:3,Strength:3,Toughness:3,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:3,Sight:2,Hearing:3,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,ZombiesDragDown:1,ZombiesFenceLunge:0,DisableFakeDead:3,PopulationMultiplier:0.15,PopulationStartMultiplier:1.0,PopulationPeakMultiplier:1.0,PopulationPeakDay:28,RespawnHours:72,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLootNew:0.6,CannedFoodLootNew:0.6,SkillBookLoot:0.4,RecipeResourceLoot:0.8,LiteratureLootNew:0.6,SurvivalGearsLootNew:2.0,MedicalLootNew:0.6,WeaponLootNew:0.4,RangedWeaponLootNew:0.4,AmmoLootNew:0.4,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.6,KeyLootNew:0.6,MediaLootNew:2.0,MementoLootNew:0.6,CookwareLootNew:2.0,MaterialLootNew:3.0,FarmingLootNew:2.0,ToolLootNew:2.0,OtherLootNew:0.6,Global:1.0,StatsDecrease:3,EndRegen:3,InjurySeverity:1,BoneFracture:0,MultiHitZombies:1,RearVulnerability:2,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:3,NightLength:3,ErosionSpeed:3,WaterShut:3,ElecShut:3,Farming:3,NatureAbundance:3,PlantResilience:3,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:3,FishAbundance:3,Helicopter:1,MetaEvent:2,GeneratorSpawning:4,SurvivorHouseChance:3,AnnotatedMapChance:4,Alarm:2,LockedHouses:5,CarSpawnRate:4,ChanceHasGas:2,InitialGas:3,FuelStationGasMin:0.7,FuelStationGasMax:1.0,CarGasConsumption:0.6,CarGeneralCondition:3,LockedCar:3,CarAlarm:3,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:3,BloodLevel:3,ClothingDegradation:3,StarterKit:1,AllowMiniMap:1,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:3.0,AllowExteriorGenerator:1,ConstructionBonusPoints:4,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:6,AnimalMatingSeason:1,AnimalMetaPredator:0,AnimalSoundAttractZombies:0},
     ini:{PVP:0,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
   },
 };
@@ -392,23 +404,33 @@ const DESCS={
   RespawnHours:'How many in-game hours before zombies can respawn in a cleared area. 0 = respawn is off.',
   RespawnUnseenHours:'An area must go unvisited for this many hours before zombies will respawn there.',
   RespawnMultiplier:'What fraction of the original population respawns each cycle (e.g. 0.1 = 10%).',
-  // Loot by Category
-  FoodLoot:'How often fresh food items spawn in containers.',
-  CannedFoodLoot:'How often canned goods spawn.',
-  LiteratureLoot:'How often books, magazines, and notes spawn.',
-  SurvivalGearsLoot:'How often survival tools spawn — seeds, fishing gear, nails, and similar items.',
-  MedicalLoot:'How often medical supplies spawn.',
-  WeaponLoot:'How often melee weapons spawn.',
-  RangedWeaponLoot:'How often guns and ranged weapons spawn.',
-  AmmoLoot:'How often ammunition spawns.',
-  MechanicsLoot:'How often car parts and mechanical items spawn.',
-  OtherLoot:'How often miscellaneous items spawn, including forage drops in town and road zones.',
+  // Loot by Category (B42 floats: 0.05=Insane, 0.2=Extreme, 0.6=Rare, 1.0=Normal, 2.0=Common, 3.0=Abundant)
+  FoodLootNew:'How often fresh / perishable food items spawn in containers.',
+  CannedFoodLootNew:'How often canned and preserved non-perishable food spawns.',
+  SkillBookLoot:'How often skill books that grant XP on reading spawn.',
+  RecipeResourceLoot:'How often recipe books and crafting reference materials spawn.',
+  LiteratureLootNew:'How often other literature — magazines, newspapers, notes — spawns.',
+  SurvivalGearsLootNew:'How often survival essentials spawn — seeds, fishing gear, nails, and similar items.',
+  MedicalLootNew:'How often medical supplies spawn.',
+  WeaponLootNew:'How often melee weapons spawn.',
+  RangedWeaponLootNew:'How often guns and ranged weapons spawn. Boosted in Apocalypse to reflect 1993 Kentucky gun culture.',
+  AmmoLootNew:'How often ammunition spawns.',
+  MechanicsLootNew:'How often car parts and mechanical items spawn.',
+  ClothingLootNew:'How often clothing items spawn.',
+  ContainerLootNew:'How often bags, backpacks, and containers spawn.',
+  KeyLootNew:'How often vehicle and door keys spawn.',
+  MediaLootNew:'How often VHS tapes, CDs, and other media spawn.',
+  MementoLootNew:'How often keepsakes and personal effect items spawn.',
+  CookwareLootNew:'How often cooking pots, pans, and kitchen tools spawn.',
+  MaterialLootNew:'How often raw crafting materials spawn.',
+  FarmingLootNew:'How often farming supplies and seeds spawn.',
+  ToolLootNew:'How often tools spawn.',
+  OtherLootNew:'How often miscellaneous items spawn, including forage drops in town and road zones.',
   // Loot Respawn & Cleanup
-  LootRespawn:'How often containers refill with fresh loot — none, every day, every week, or every month.',
   SeenHoursPreventLootRespawn:'If you have visited an area recently, loot there won\'t respawn until this many hours have passed.',
   HoursForWorldItemRemoval:'How long items dropped on the ground persist before despawning. 0 = they never despawn.',
   // Character & Survival
-  XpMultiplier:'Multiplies all experience gains — higher values make skills level faster.',
+  Global:'Global XP multiplier applied to all skill gains. Each skill can also be overridden individually in MultiplierConfig.',
   StatsDecrease:'How quickly hunger, thirst, and fatigue drain from your character.',
   EndRegen:'How fast endurance recovers after sprinting or exertion.',
   InjurySeverity:'How bad wounds are and how much they affect your character stats while healing.',
@@ -447,7 +469,8 @@ const DESCS={
   CarSpawnRate:'How many cars are present on the map.',
   ChanceHasGas:'How likely a parked car has fuel in the tank.',
   InitialGas:'How much fuel cars have when you find them.',
-  FuelStationGas:'How much fuel is available at gas stations.',
+  FuelStationGasMin:'Minimum fuel level (0.0–1.0) when a gas station has fuel.',
+  FuelStationGasMax:'Maximum fuel level (0.0–1.0) when a gas station has fuel.',
   CarGasConsumption:'Multiplier for how fast cars burn through fuel.',
   CarGeneralCondition:'How damaged or worn spawned cars are.',
   LockedCar:'How often cars spawn locked, requiring hotwiring or a key to drive.',
@@ -474,17 +497,18 @@ const DESCS={
   AllowExteriorGenerator:'When on, generators placed outside can power electronics through exterior walls.',
   ConstructionBonusPoints:'How much extra HP player-built structures have beyond the default.',
   // B42 — Animals & Livestock
-  AnimalAgingSpeed:'How fast domesticated animals age through their life stages (B42).',
-  MilkIncreaseSpeed:'How quickly dairy animals produce milk between milkings (B42).',
-  AnimalSpawnMultiplier:'Multiplier for how many domesticated animals spawn in the world (B42).',
-  WildAnimalSpawnMultiplier:'Multiplier for how many wild animals spawn in the world (B42).',
+  AnimalStatsModifier:'Modifies animal stat values (speed, health, etc.) — higher = faster/tougher animals (B42).',
+  AnimalRanchChance:'How often farms and ranches spawn with domesticated animals already present (B42).',
+  AnimalMatingSeason:'When on, animals only breed during their natural mating season (B42).',
+  AnimalMetaPredator:'When on, predator meta-events (wolf/bear attacks on livestock) can occur off-screen (B42).',
+  AnimalSoundAttractZombies:'When on, animal sounds can attract nearby zombies (B42).',
   // B42 — Crafting & Resources
   CraftingYieldMultiplier:'Multiplier for how many items crafting recipes produce (B42).',
   OreSpawnMultiplier:'Multiplier for how much ore and raw mineral deposits appear in the world (B42).',
   BlacksmithingEnabled:'When on, players can forge metal tools and weapons at a forge (B42).',
   PotteryEnabled:'When on, players can craft pottery items from clay (B42).',
   // B42 — Basements & Darkness
-  BasementSpawnFrequency:'How often buildings generate with an accessible basement (B42).',
+  SpawnFrequency:'How often buildings generate with an accessible basement (B42).',
   UndergroundDarkness:'How dark underground areas and basements are without a light source (B42).',
 };
 
@@ -527,8 +551,14 @@ function applyPreset(pi,name){
 
 // ─── HELPERS ──────────────────────────────────────────────────────────
 function clamp(s,v){return Math.max(s.min,Math.min(s.max,v));}
+const LOOT_SNAPS=[[0,'None'],[0.05,'Insane'],[0.2,'Extreme rare'],[0.6,'Rare'],[1.0,'Normal'],[2.0,'Common'],[3.0,'Abundant']];
+function lootLabel(v){
+  for(const[sv,sl] of LOOT_SNAPS){if(Math.abs(v-sv)<0.001) return sl;}
+  return parseFloat(v.toFixed(2)).toString();
+}
 function fmtDisplay(s,v){
   if(s.bool) return v>=0.5?'on':'off';
+  if(s.lootFloat) return lootLabel(parseFloat(v));
   if(s.enum){const i=Math.round(v)-s.min;return s.enum[Math.max(0,Math.min(s.enum.length-1,i))];}
   if(s.step<0.1) return parseFloat(v.toFixed(2)).toString();
   if(s.step<1) return parseFloat(v.toFixed(1)).toString();
@@ -585,18 +615,38 @@ function parseIni(text){
   return r;
 }
 function parseLua(text){
-  const r={};const re=/\b(\w+)\s*=\s*([^,}\n\r]+)/g;let m;
-  while((m=re.exec(text))!==null){const k=m[1].trim(),v=m[2].trim().replace(/,$/,'');if(k==='SandboxVars'||k==='VERSION') continue;r[k]=v;}
+  const r={};let tbl=null;
+  for(const raw of text.split('\n')){
+    const line=raw.trim();
+    const tm=line.match(/^(\w+)\s*=\s*\{/);if(tm){tbl=tm[1]==='SandboxVars'?null:tm[1];continue;}
+    if(line.startsWith('}')){tbl=null;continue;}
+    const kvm=line.match(/^(\w+)\s*=\s*(.+?)(?:\s*,\s*(?:--.*)?)?$/);
+    if(!kvm) continue;
+    const k=kvm[1],v=kvm[2].trim();
+    if(k==='SandboxVars'||k==='Version'||k==='VERSION') continue;
+    r[tbl?`${tbl}.${k}`:k]=v;
+  }
   return r;
 }
 function applyParsed(pi,fid,parsed){
   const fm=settingMap[fid];if(!fm) return;
   if(!values[pi][fid]) values[pi][fid]={};
-  for(const[k,sv] of Object.entries(parsed)){
-    if(!fm[k]) continue;
-    const s=fm[k];let v=parseFloat(sv);
+  for(const[rawK,sv] of Object.entries(parsed)){
+    let s=fm[rawK];
+    if(!s){
+      // Handle Table.Key format from context-aware parseLua
+      const dot=rawK.indexOf('.');
+      if(dot>0){
+        const schemaKey=rawK.slice(dot+1);
+        const luaTable=rawK.slice(0,dot);
+        const cand=fm[schemaKey];
+        if(cand&&cand.luaTable===luaTable) s=cand;
+      }
+    }
+    if(!s) continue;
+    let v=parseFloat(sv);
     if(isNaN(v)) v=(sv==='true'||sv==='1')?1:0;
-    values[pi][fid][k]=clamp(s,v);
+    values[pi][fid][s.key]=clamp(s,v);
   }
 }
 
@@ -616,14 +666,23 @@ function formatIni(pi,isAvg){
 }
 function formatLua(pi,isAvg){
   const f=SCHEMA.find(x=>x.id==='sandbox');
-  const L=['SandboxVars = {','    VERSION = 4,'];
+  const L=['SandboxVars = {','    Version = 6,'];
+  const byTable={};
   for(const g of f.groups){
-    L.push('    -- '+(g.b42?'[B42] ':'')+g.label);
     for(const s of g.settings){
       const v=isAvg?fmtFile(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key])):fmtFile(s,values[pi][f.id][s.key]??s.def);
-      L.push(`    ${s.key} = ${v},`+(s.b42?' -- B42 (verify key name)':''));
+      if(s.luaTable){
+        if(!byTable[s.luaTable]) byTable[s.luaTable]=[];
+        byTable[s.luaTable].push([s.key,v]);
+      } else {
+        L.push(`    ${s.key} = ${v},`);
+      }
     }
-    L.push('');
+  }
+  for(const[tbl,pairs] of Object.entries(byTable)){
+    L.push(`    ${tbl} = {`);
+    for(const[k,v] of pairs) L.push(`        ${k} = ${v},`);
+    L.push('    },');
   }
   L.push('}');return L.join('\n');
 }
