@@ -6,14 +6,12 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 
 ## Critical / Likely Broken
 
-### 1. WaterShut / ElecShut render as number inputs instead of dropdowns
-**Problem:** `WaterShut` and `ElecShut` are enum dropdowns in-game (e.g. "0–2 months", "0–6 months"), but `detectType()` can't find their enum options because their Sandbox.json lookup keys are wrong. The Lua key `WaterShut` maps to `Sandbox_WaterShut` in Sandbox.json — need to verify this name actually exists and has `_option1` entries. If not, add entries to `sandboxKeyMap`.
-**Where to look:** Open `reference/game_files/Sandbox.json`, search for `WaterShut`. If `Sandbox_WaterShut_option1` doesn't exist, find the actual key name and add it to `sandboxKeyMap`.
-**Same issue for:** `ElecShut`, `TimeSinceApo` (months since apo), `FoodRotSpeed` (may be `Sandbox_FoodSpoil`), `ErosionSpeed`.
+### 1. ~~WaterShut / ElecShut render as number inputs instead of dropdowns~~ FIXED
+`WaterShut → Shutoff` and `FoodRotSpeed → FoodSpoil` added to `sandboxKeyMap`. `ElecShut`, `TimeSinceApo`, and `ErosionSpeed` have correct Sandbox.json keys already — no map needed.
 
-### 2. StartDay appears as a dropdown in the Time tab screenshot
-**Problem:** In screenshot `1_time_1.png`, Start Day is a dropdown (specific day-of-month choices), not a number input. But `Sandbox_StartDay_option1` likely doesn't exist in Sandbox.json — need to check. If it's missing, determine whether it should be a number (1–31) or if there's a different Sandbox.json key.
-**Where to look:** `reference/game_files/Sandbox.json`, search for `StartDay`.
+### 2. StartDay control type unconfirmed
+**Problem:** `Sandbox_StartDay_option1` does not exist — Sandbox.json has only a title entry. Currently renders as a number input. Need to confirm in-game whether it's actually a dropdown (specific day choices) or a free number (1–31).
+**See:** `reference/ingame_checklist.md`
 
 ### 3. Browser testing not done
 **Problem:** The full rewrite (dynamic loading, new control types, buildSchema/detectType) has never been opened in a browser. Unknown if it works at all.
@@ -43,9 +41,10 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 **Problem:** The Rising preset is a survivor-friendly scenario where PVP is likely off (PVP=0). The ini preset values are hardcoded in `index.html` for each preset — verify that Rising's ini section sets PVP=0. If the PRESETS object in index.html uses the same ini defaults for all presets, Rising will incorrectly show PVP=1.
 **Where:** Search `index.html` for `Rising` and check how ini preset values are built in `buildPresetValues()`.
 
-### 6. AnimalStatsModifier / AnimalRanchChance Sandbox.json key name unverified
-**Problem:** These B42 keys are in the `b42animals` group. The tool will look up `Sandbox_AnimalStatsModifier` and `Sandbox_AnimalRanchChance`. Neither has been verified to exist in Sandbox.json with that exact name. If the keys are missing, these will render as number inputs with no enum options even if they should be dropdowns.
-**Where to look:** `reference/game_files/Sandbox.json`, search for `AnimalStats` and `AnimalRanch`.
+### 6. AnimalStatsModifier dropdown labels unverified
+**Problem:** `AnimalRanchChance` is confirmed correct in Sandbox.json. `AnimalStatsModifier` has a Sandbox.json title/tooltip but no `_option*` strings. Currently uses a provisional enum with labels borrowed from `AnimalSpeed` scale ("Ultra Fast" → "Very Slow"), flagged `_unverified: true` in annotations. Labels are likely wrong for a stat-decay setting.
+**Action:** Confirm real option labels in-game. See `reference/ingame_checklist.md`.
+**Also:** `AnimalMetaStatsModifier` exists in Sandbox.json but is not in the allowlist — check if it should be added to `b42animals` group.
 
 ### 7. UndergroundDarkness enum options are from memory, not verified
 **Problem:** The options `["Pitch Black", "Dark", "Normal"]` in the annotations were inferred from the screenshot and prior knowledge — not from Sandbox.json. If the game uses different labels or a different order, the dropdown will show wrong text.
