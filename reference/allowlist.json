@@ -15,7 +15,9 @@
     "Memory":         "ZMemory",
     "Sight":          "ZSight",
     "Hearing":        "ZHearing",
-    "SpawnFrequency": "BasementSpawnFrequency"
+    "SpawnFrequency": "BasementSpawnFrequency",
+    "WaterShut":      "Shutoff",
+    "FoodRotSpeed":   "FoodSpoil"
   },
 
   "annotations": {
@@ -40,6 +42,12 @@
     "PotteryEnabled": {
       "_note": "B42 pottery toggle. Bool (0/1). Absent from Apocalypse.lua. Default 1 = enabled.",
       "type": "bool", "def": 1
+    },
+    "AnimalStatsModifier": {
+      "_note": "Livestock 'Stats Reduction Speed' — dropdown in-game (9_livestock_1.png shows value 'Normal'). Sandbox.json has no Sandbox_AnimalStatsModifier_option*. Candidate enum: same 6-slot order as Sandbox_AnimalSpeed_option* (Ultra Fast→Very Slow) because presets/schema use indices 1–6 and def 4 matches on-screen 'Normal'. NOT a sandboxKeyMap to AnimalSpeed — those strings are movement-speed wording and may misread for stat decay; this array is explicitly provisional.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
     }
   },
 
@@ -148,7 +156,7 @@
       },
       {
         "id": "b42animals", "label": "Animals & Livestock", "b42": true,
-        "_note": "B42-new animal husbandry settings. Corresponds to the 'Livestock' tab (tab 9, B42 only). AnimalStatsModifier affects animal health/stats; AnimalRanchChance is how often a ranch spawns with animals. These keys exist in B42 Sandbox.json but may not be in older preset files — verify Sandbox.json key names if these show wrong values.",
+        "_note": "B42-new animal husbandry settings. Corresponds to the 'Livestock' tab (tab 9, B42 only). AnimalRanchChance uses Sandbox.json enum strings. AnimalStatsModifier: see annotations (provisional enum, _unverified — no AnimalStatsModifier_option* in Sandbox.json; do not sandboxKeyMap to AnimalSpeed).",
         "keys": ["AnimalStatsModifier","AnimalRanchChance","AnimalMatingSeason","AnimalMetaPredator","AnimalSoundAttractZombies"]
       },
       {
