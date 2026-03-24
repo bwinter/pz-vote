@@ -21,54 +21,176 @@
   },
 
   "annotations": {
-    "_note": "Explicit type/default overrides for keys that are missing from Apocalypse.lua (B42-new) or whose type can't be reliably detected. Without these, detectType() would fall through to 'number'. Keys here appear in the sandbox groups below — the annotation is looked up by Lua key name.",
+    "_note": "Explicit type/default overrides for keys that are missing from Apocalypse.lua (B42-new) or whose type can't be reliably detected. Without these, detectType() would fall through to 'number'. All enum options here confirmed in-game unless noted otherwise.",
+
     "UndergroundDarkness": {
-      "_note": "B42 basement darkness setting. Enum with 3 named levels. Not present in any preset .lua file, so there's no Apocalypse.lua value to derive a default from. Options are inferred from in-game observation — verify against Sandbox.json if options change.",
+      "_note": "B42 basement darkness. Enum, 3 levels. Not in any preset .lua file. Options from in-game observation — Sandbox.json has no _option* for this key.",
       "type": "enum", "def": 2,
       "options": ["Pitch Black", "Dark", "Normal"]
     },
     "CraftingYieldMultiplier": {
-      "_note": "B42 crafting multiplier. Float, defaults to 1.0. Present in B42 Sandbox.json but absent from Apocalypse.lua — no Apocalypse default to fall back on.",
+      "_note": "B42 crafting yield multiplier. Float. Absent from Apocalypse.lua.",
       "type": "number", "def": 1.0
     },
     "OreSpawnMultiplier": {
-      "_note": "B42 mining/ore spawn rate. Float, defaults to 1.0. Same situation as CraftingYieldMultiplier.",
+      "_note": "B42 ore spawn multiplier. Float. Absent from Apocalypse.lua.",
       "type": "number", "def": 1.0
     },
     "BlacksmithingEnabled": {
-      "_note": "B42 blacksmithing toggle. Bool (0/1). Absent from Apocalypse.lua. Default 1 = enabled.",
+      "_note": "B42 blacksmithing toggle. Bool. Absent from Apocalypse.lua.",
       "type": "bool", "def": 1
     },
     "PotteryEnabled": {
-      "_note": "B42 pottery toggle. Bool (0/1). Absent from Apocalypse.lua. Default 1 = enabled.",
+      "_note": "B42 pottery toggle. Bool. Absent from Apocalypse.lua.",
       "type": "bool", "def": 1
     },
+
+    "StartDay": {
+      "_note": "1–31 dropdown in-game (1_time_2.png). Sandbox.json has no _option* entries. Rendered as number input — 31-item dropdown is poor UX for voting.",
+      "type": "number", "def": 9
+    },
+    "WaterShutModifier": {
+      "_note": "World 'Water Shutoff' day offset. Number input in-game (4_world_1.png, value 14). Distinct from WaterShut (the distribution enum). Sandbox.json has no entry for this key.",
+      "type": "number", "def": 14
+    },
+    "ElecShutModifier": {
+      "_note": "World 'Electricity Shutoff' day offset. Number input in-game (4_world_1.png, value 14). Distinct from ElecShut (distribution enum). Sandbox.json has no entry for this key.",
+      "type": "number", "def": 14
+    },
+    "FridgeFactor": {
+      "_note": "World 'Refrigeration Effectiveness'. Dropdown confirmed in-game (4_world_2.png). Sandbox.json has no _option* entries.",
+      "type": "enum", "def": 3,
+      "options": ["Very Low", "Low", "Normal", "High", "Very High", "No decay"]
+    },
+    "Alarm": {
+      "_note": "World 'House Alarms Frequency'. Dropdown confirmed in-game (4_world_3.png). Sandbox.json has no entry for this key. No 'Always' at top end.",
+      "type": "enum", "def": 4,
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often"]
+    },
+    "LockedHouses": {
+      "_note": "World 'Locked Houses Frequency'. Dropdown confirmed in-game (4_world_3.png). Same 6-slot scale as Alarm. Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 6,
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often"]
+    },
+    "FuelStationGasMin": {
+      "_note": "World 'Initial Minimum Gas Pump Amount'. Dropdown confirmed in-game (4_world_4.png). Sandbox.json has a title but no _option* entries. 9-slot scale shared with FuelStationGasMax.",
+      "type": "enum", "def": 1,
+      "options": ["Empty", "Super Low", "Very Low", "Low", "Normal", "High", "Very High", "Full", "Custom"]
+    },
+    "FuelStationGasMax": {
+      "_note": "World 'Initial Maximum Gas Pump Amount'. Dropdown confirmed in-game (4_world_5.png). Same 9-slot scale as FuelStationGasMin.",
+      "type": "enum", "def": 6,
+      "options": ["Empty", "Super Low", "Very Low", "Low", "Normal", "High", "Very High", "Full", "Custom"]
+    },
+
+    "Temperature": {
+      "_note": "Nature 'Temperature'. Dropdown confirmed in-game (5_nature_2.png). Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 3,
+      "options": ["Very Cold", "Cold", "Normal", "Hot", "Very Hot"]
+    },
+    "Rain": {
+      "_note": "Nature 'Rain'. Dropdown confirmed in-game (5_nature_3.png). Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 3,
+      "options": ["Very Dry", "Dry", "Normal", "Rainy", "Very Rainy"]
+    },
+    "FishAbundance": {
+      "_note": "Nature 'Fishing Abundance'. Dropdown confirmed in-game (5_nature_4.png). Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 2,
+      "options": ["Very Poor", "Poor", "Normal", "Abundant", "Very Abundant"]
+    },
+    "NatureAbundance": {
+      "_note": "Nature 'Nature's Abundance'. Dropdown confirmed in-game (5_nature_5.png). Same 5-slot scale as FishAbundance. Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 3,
+      "options": ["Very Poor", "Poor", "Normal", "Abundant", "Very Abundant"]
+    },
+    "Farming": {
+      "_note": "Nature 'Farming Speed' (Sandbox.json: Agriculture Multiplier). Float number input in-game (5_nature_1.png, value 1.0). No Sandbox.json _option* entries.",
+      "type": "number", "def": 1.0
+    },
+    "PlantAbundance": {
+      "_note": "Nature 'Farming Abundance'. Float number input in-game (5_nature_1.png, value 1.0). No Sandbox.json _option* entries.",
+      "type": "number", "def": 1.0
+    },
+
+    "Helicopter": {
+      "_note": "Meta 'Helicopter'. Dropdown confirmed in-game (6_meta_2.png). Sandbox.json has a title but no _option* entries.",
+      "type": "enum", "def": 2,
+      "options": ["Never", "Once", "Sometimes", "Often"]
+    },
+    "MetaEvent": {
+      "_note": "Meta 'Meta Event'. Dropdown confirmed in-game (6_meta_3.png). 3 options only — no 'Once'. Sandbox.json has a title but no _option* entries.",
+      "type": "enum", "def": 2,
+      "options": ["Never", "Sometimes", "Often"]
+    },
+
+    "StatsDecrease": {
+      "_note": "Character 'Stats Decrease'. Dropdown confirmed in-game (7_character_4.png). Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 3,
+      "options": ["Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "EndRegen": {
+      "_note": "Character 'Endurance Regeneration'. Dropdown confirmed in-game (7_character_5.png). Same 5-slot scale as StatsDecrease. Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 3,
+      "options": ["Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "CharacterFreePoints": {
+      "_note": "Character 'Free Trait Points'. Number input in-game (7_character_1.png, value 0). Sandbox.json has a title but no _option* entries.",
+      "type": "number", "def": 0
+    },
+
+    "CarAlarm": {
+      "_note": "Vehicles 'Vehicle Alarms Frequency'. Dropdown confirmed in-game (8_vehicles_2.png). Sandbox.json has no entry for this key.",
+      "type": "enum", "def": 3,
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often"]
+    },
+
+    "PopulationMultiplier": {
+      "_note": "Zombie advanced 'Population Multiplier'. Dropdown confirmed in-game (2_zombie_4.png). 7 options incl. Insane and Custom. Sandbox.json has no _option* entries.",
+      "type": "enum", "def": 4,
+      "options": ["Insane", "Very High", "High", "Normal", "Low", "None", "Custom"]
+    },
+    "PopulationStartMultiplier": {
+      "_note": "Zombie advanced 'Population Start Multiplier'. Dropdown confirmed in-game (2_zombie_5.png). Same 7-slot scale as PopulationMultiplier.",
+      "type": "enum", "def": 4,
+      "options": ["Insane", "Very High", "High", "Normal", "Low", "None", "Custom"]
+    },
+    "PopulationPeakMultiplier": {
+      "_note": "Zombie advanced 'Population Peak Multiplier'. Dropdown confirmed in-game (2_zombie_6.png). Same 7-slot scale. Apocalypse default is 'High' = index 3.",
+      "type": "enum", "def": 3,
+      "options": ["Insane", "Very High", "High", "Normal", "Low", "None", "Custom"]
+    },
+    "PopulationPeakDay": {
+      "_note": "Zombie advanced 'Population Peak Day'. Number input in-game (2_zombie_2.png, value 28).",
+      "type": "number", "def": 28
+    },
+
     "AnimalStatsModifier": {
-      "_note": "Livestock 'Stats Reduction Speed'. Sandbox.json has no _option* entries. Options confirmed in-game (9_livestock_3.png): Ultra Fast / Very Fast / Fast / Normal / Slow / Very Slow. Same 6-slot scale as AnimalSpeed — wording is correct for stat decay speed.",
+      "_note": "Livestock 'Stats Reduction Speed'. Dropdown confirmed in-game (9_livestock_3.png): Ultra Fast→Very Slow. Sandbox.json has no _option* entries.",
       "type": "enum", "def": 4,
       "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
     },
     "AnimalPregnancyTime": {
-      "_note": "Livestock 'Pregnancy Time'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale as AnimalStatsModifier — unverified, dropdown not opened in screenshots.",
-      "_unverified": true,
+      "_note": "Livestock 'Pregnancy Time'. Dropdown confirmed in-game (9_livestock_4.png). Same 6-slot scale as AnimalStatsModifier. Sandbox.json has no _option* entries.",
       "type": "enum", "def": 4,
       "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
     },
     "AnimalEggHatch": {
-      "_note": "Livestock 'Egg Hatch Time'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale — unverified.",
-      "_unverified": true,
+      "_note": "Livestock 'Egg Hatch Time'. Dropdown confirmed in-game (9_livestock_4.png). Same 6-slot scale.",
+      "type": "enum", "def": 4,
+      "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "AnimalAgeModifier": {
+      "_note": "Livestock 'Aging Modifier Speed'. Dropdown confirmed in-game (9_livestock_4.png). Same 6-slot scale. Sandbox.json had only 3 options (Very Fast/Fast/Normal) — those were wrong/incomplete. ⚠️ Checklist flags that Apocalypse default (index 4) may mean Slow on this scale — verify against live SandboxVars.lua.",
       "type": "enum", "def": 4,
       "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
     },
     "AnimalMilkIncModifier": {
-      "_note": "Livestock 'Milk Increase Speed'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale — unverified.",
-      "_unverified": true,
+      "_note": "Livestock 'Milk Increase Speed'. Dropdown confirmed in-game (9_livestock_4.png). Same 6-slot scale.",
       "type": "enum", "def": 4,
       "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
     },
     "AnimalWoolIncModifier": {
-      "_note": "Livestock 'Wool Increase Speed'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale — unverified.",
-      "_unverified": true,
+      "_note": "Livestock 'Wool Increase Speed'. Dropdown confirmed in-game (9_livestock_4.png). Same 6-slot scale.",
       "type": "enum", "def": 4,
       "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
     },
@@ -77,66 +199,14 @@
       "type": "number", "def": 240
     },
     "AnimalTrackChance": {
-      "_note": "Livestock 'Animal Tracks Chance'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Sometimes'). Def=4 in Apocalypse.lua. Options assumed same 7-slot rarity scale as AnimalRanchChance (Never→Always, Sometimes=4) — unverified.",
-      "_unverified": true,
+      "_note": "Livestock 'Animal Tracks Chance'. Dropdown confirmed in-game (9_livestock_5.png). 6 options — no 'Always' (unlike AnimalRanchChance which has 7). Sandbox.json has no _option* entries.",
       "type": "enum", "def": 4,
-      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often", "Always"]
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often"]
     },
     "AnimalPathChance": {
-      "_note": "Livestock 'Animal Paths Chance'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Sometimes'). Def=4 in Apocalypse.lua. Options assumed same 7-slot rarity scale as AnimalRanchChance — unverified.",
-      "_unverified": true,
+      "_note": "Livestock 'Animal Paths Chance'. Dropdown confirmed in-game (9_livestock_5.png). Same 6-slot scale as AnimalTrackChance.",
       "type": "enum", "def": 4,
-      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often", "Always"]
-    },
-    "StartDay": {
-      "_note": "In-game control is a 1-31 dropdown (confirmed 1_time_2.png). Sandbox.json has no _option* entries. Rendering as number input for usability — a 31-item dropdown is poor UX for voting. Valid range 1–31.",
-      "type": "number", "def": 9
-    },
-    "WaterShutModifier": {
-      "_note": "World tab 'Water Shutoff' numeric offset (days). Shows as a raw number input in-game (4_world_1.png, value 14). Distinct from WaterShut which is the distribution enum. Sandbox.json has no entry for this key at all.",
-      "type": "number", "def": 14
-    },
-    "ElecShutModifier": {
-      "_note": "World tab 'Electricity Shutoff' numeric offset (days). Shows as a raw number input in-game (4_world_1.png, value 14). Distinct from ElecShut which is the distribution enum. Sandbox.json has no entry for this key at all.",
-      "type": "number", "def": 14
-    },
-    "PopulationPeakDay": {
-      "_note": "Zombie 'Population Peak Day'. Number input in-game (2_zombie_2.png, value 28). The day on which zombie population reaches peak. Sandbox.json has a title entry but no _option* entries.",
-      "type": "number", "def": 28
-    },
-    "CharacterFreePoints": {
-      "_note": "Character 'Free Trait Points'. Number input in-game (7_character_1.png, value 0). Sandbox.json has a title entry but no _option* entries.",
-      "type": "number", "def": 0
-    },
-    "Farming": {
-      "_note": "Nature tab 'Farming Speed' (Sandbox.json title: Agriculture Multiplier). Shows as 1.0 in-game (5_nature_1.png) — float number input, not a dropdown. No Sandbox.json _option* entries.",
-      "type": "number", "def": 1.0
-    },
-    "PlantAbundance": {
-      "_note": "Nature tab 'Farming Abundance'. Shows as 1.0 in-game (5_nature_1.png) — float number input, not a dropdown. No Sandbox.json _option* entries.",
-      "type": "number", "def": 1.0
-    },
-    "PopulationMultiplier": {
-      "_note": "Zombie advanced 'Population Multiplier'. Dropdown in-game (2_zombie_2.png, value 'Normal'). No Sandbox.json _option* entries. Options unverified — need dropdown opened in-game.",
-      "_unverified": true,
-      "type": "enum", "def": 4,
-      "options": ["Very Low", "Low", "Normal", "High", "Very High"]
-    },
-    "PopulationStartMultiplier": {
-      "_note": "Zombie advanced 'Population Start Multiplier'. Dropdown in-game (2_zombie_2.png, value 'Normal'). No Sandbox.json _option* entries. Options assumed same scale as PopulationMultiplier — unverified.",
-      "_unverified": true,
-      "type": "enum", "def": 4,
-      "options": ["Very Low", "Low", "Normal", "High", "Very High"]
-    },
-    "PopulationPeakMultiplier": {
-      "_note": "Zombie advanced 'Population Peak Multiplier'. Dropdown in-game (2_zombie_2.png, value 'High'). No Sandbox.json _option* entries. Options assumed same scale — def=4 means 'High' if options are [Very Low,Low,Normal,High,Very High] — unverified.",
-      "_unverified": true,
-      "type": "enum", "def": 4,
-      "options": ["Very Low", "Low", "Normal", "High", "Very High"]
-    },
-    "RespawnHours": {
-      "_note": "Zombie respawn. 2_zombie_2.png shows 'Respawn Hours: 0.0' as a number in advanced settings. BUT 2_zombie_1.png shows 'Zombie Respawn: None' as a dropdown — unclear if these are the same control or two separate keys. Treating as number until confirmed. def=0 = no respawn (Apocalypse preset).",
-      "type": "number", "def": 0
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often"]
     }
   },
 
@@ -200,8 +270,8 @@
       },
       {
         "id": "zrespawn", "label": "Zombie Respawn",
-        "_note": "Controls whether and how fast zombies respawn. These are under ZombieConfig in the Lua output. RespawnHours=0 means no respawn. Kept separate from zpop because they're shown in a different section of the Zombie tab.",
-        "keys": ["RespawnHours","RespawnUnseenHours","RespawnMultiplier"]
+        "_note": "Controls whether and how fast zombies respawn. Under ZombieConfig in Lua. ZombieRespawn is the top-level preset dropdown (High/Normal/Low/None, has Sandbox.json options); RespawnHours/UnseenHours/Multiplier are advanced numeric fields shown below it in-game (2_zombie_2.png). These are DISTINCT controls — ZombieRespawn sets a named tier, the number fields give fine-grained control.",
+        "keys": ["ZombieRespawn","RespawnHours","RespawnUnseenHours","RespawnMultiplier"]
       },
       {
         "id": "loot", "label": "Loot Rarity",
