@@ -14,7 +14,7 @@
   --p0:#4f9ede;--p1:#c58bc0;--p2:#4ec9b0;
   --p0d:#1f4a70;--p1d:#5a3860;--p2d:#1b5a50;
   --accent:#007acc;
-  --ind:16px;--icon-w:20px;--key-w:220px;--val-w:80px;--avg-w:76px;
+  --ind:16px;--icon-w:20px;--key-w:220px;--avg-w:76px;
   --key-offset:288px;
   --row-h:26px;--toolbar-h:38px;--header-h:28px;
 }
@@ -71,17 +71,18 @@ select option{background:#2d2d2d;color:var(--text);}
 .s-key.b42{color:#ce9178;}
 .sliders-wrap{display:flex;flex:1;align-items:center;min-width:0;}
 .p-col{display:flex;align-items:center;flex:1;min-width:100px;padding:0 5px;gap:4px;border-left:1px solid var(--border2);}
-.p-val{width:var(--val-w);flex-shrink:0;font-family:'Consolas','Cascadia Code',monospace;font-size:11px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.p-col:nth-child(1) .p-val{color:var(--p0);}
-.p-col:nth-child(2) .p-val{color:var(--p1);}
-.p-col:nth-child(3) .p-val{color:var(--p2);}
-input[type=range]{flex:1;min-width:40px;height:3px;-webkit-appearance:none;appearance:none;background:#3c3c3c;border-radius:2px;cursor:pointer;outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:9px;height:9px;border-radius:50%;cursor:pointer;transition:transform .1s;}
-input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
-.p-col:nth-child(1) input[type=range]::-webkit-slider-thumb{background:var(--p0);}
-.p-col:nth-child(2) input[type=range]::-webkit-slider-thumb{background:var(--p1);}
-.p-col:nth-child(3) input[type=range]::-webkit-slider-thumb{background:var(--p2);}
 .s-avg{width:var(--avg-w);flex-shrink:0;font-family:'Consolas','Cascadia Code',monospace;font-size:11px;color:var(--avg);text-align:right;padding-right:12px;white-space:nowrap;}
+.p-select{flex:1;min-width:60px;background:#2d2d2d;border:1px solid #555;color:var(--text);font-size:11px;font-family:'Consolas','Cascadia Code',monospace;padding:1px 2px;cursor:pointer;border-radius:2px;}
+.p-select:focus{outline:none;border-color:var(--accent);}
+.p-num{flex:1;min-width:50px;background:#2d2d2d;border:1px solid #555;color:var(--text);font-size:11px;font-family:'Consolas','Cascadia Code',monospace;padding:1px 4px;border-radius:2px;}
+.p-num:focus{outline:none;border-color:var(--accent);}
+input[type=checkbox].p-check{width:14px;height:14px;cursor:pointer;}
+.p-col:nth-child(1) .p-select{border-bottom:2px solid var(--p0d);}
+.p-col:nth-child(2) .p-select{border-bottom:2px solid var(--p1d);}
+.p-col:nth-child(3) .p-select{border-bottom:2px solid var(--p2d);}
+.p-col:nth-child(1) .p-num{border-bottom:2px solid var(--p0d);}
+.p-col:nth-child(2) .p-num{border-bottom:2px solid var(--p1d);}
+.p-col:nth-child(3) .p-num{border-bottom:2px solid var(--p2d);}
 #status{font-size:11px;color:var(--dim);padding:3px 10px;background:var(--bg2);border-bottom:1px solid var(--border2);}
 .save-ok{color:#4ec9b0 !important;}
 .warn{color:#dcdcaa !important;}
@@ -135,393 +136,59 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3);}
     <span class="ch-avg-label">avg</span>
   </div>
 </div>
-<div id="status">Loading configs from GitHub...</div>
+<div id="status">Loading game files...</div>
 <div id="tree"></div>
 <script>
-// ── SCHEMA ───────────────────────────────────────────────────────────
-// luaTable: key is nested under this Lua table in SandboxVars output
-// lootFloat: display uses named snap labels (0.05=Insane … 3.0=Abundant)
-const SCHEMA=[
-{id:'ini',label:'server.ini',ext:'ini',groups:[
-  {id:'pvp',label:'PVP & Safety',settings:[
-    {key:'PVP',label:'PVP enabled',min:0,max:1,step:1,def:1,bool:true},
-    {key:'SafetySystem',label:'Safety system',min:0,max:1,step:1,def:1,bool:true},
-  ]},
-  {id:'sleep',label:'Sleep',settings:[
-    {key:'SleepAllowed',label:'Sleep allowed',min:0,max:1,step:1,def:0,bool:true},
-    {key:'SleepNeeded',label:'Sleep needed',min:0,max:1,step:1,def:0,bool:true},
-  ]},
-  {id:'safe',label:'Safehouses',settings:[
-    {key:'PlayerSafehouse',label:'Player safehouses',min:0,max:1,step:1,def:0,bool:true},
-    {key:'SafehouseDaySurvivedToClaim',label:'Days to claim',min:0,max:30,step:1,def:3},
-  ]},
-  {id:'srv',label:'Server',settings:[
-    {key:'MaxPlayers',label:'Max players',min:1,max:100,step:1,def:32},
-    {key:'PauseEmpty',label:'Pause when empty',min:0,max:1,step:1,def:1,bool:true},
-    {key:'HoursForLootRespawn',label:'Loot respawn hrs (0=off)',min:0,max:8760,step:1,def:0},
-  ]},
-]},
-{id:'sandbox',label:'SandboxVars.lua',ext:'lua',groups:[
-  {id:'world',label:'World Timeline',settings:[
-    {key:'DayLength',label:'Day length',min:1,max:25,step:1,def:3,enum:['15 min','30 min','1 hr','2 hr','3 hr','4 hr','5 hr','6 hr','7 hr','8 hr','9 hr','10 hr','11 hr','12 hr','13 hr','14 hr','15 hr','16 hr','17 hr','18 hr','19 hr','20 hr','21 hr','22 hr','23 hr']},
-    {key:'StartMonth',label:'Start month',min:1,max:12,step:1,def:7,enum:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']},
-    {key:'StartDay',label:'Start day',min:1,max:28,step:1,def:9},
-    {key:'StartTime',label:'Start time',min:1,max:8,step:1,def:2,enum:['7 AM','9 AM','12 PM','2 PM','5 PM','9 PM','12 AM','2 AM']},
-    {key:'WaterShut',label:'Water shutoff',min:1,max:9,step:1,def:2,enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months','6-12 months','Disabled']},
-    {key:'ElecShut',label:'Electricity shutoff',min:1,max:9,step:1,def:2,enum:['Instant','0-30 days','0-2 months','0-6 months','0-1 year','0-5 years','2-6 months','6-12 months','Disabled']},
-    {key:'WaterShutModifier',label:'Water shutoff exact day',min:-1,max:365,step:1,def:-1},
-    {key:'ElecShutModifier',label:'Elec shutoff exact day',min:-1,max:365,step:1,def:-1},
-  ]},
-  {id:'zpop',label:'Zombie Population',settings:[
-    {key:'Zombies',label:'Zombie count',min:1,max:6,step:1,def:4,enum:['Insane','Very high','High','Normal','Low','None']},
-    {key:'Distribution',label:'Distribution',min:1,max:2,step:1,def:1,enum:['Urban focused','Uniform']},
-    {key:'PopulationMultiplier',label:'Pop multiplier',luaTable:'ZombieConfig',min:0,max:4,step:0.1,def:0.65},
-    {key:'PopulationStartMultiplier',label:'Pop start multi',luaTable:'ZombieConfig',min:0,max:4,step:0.1,def:1.0},
-    {key:'PopulationPeakMultiplier',label:'Pop peak multi',luaTable:'ZombieConfig',min:0,max:4,step:0.1,def:1.5},
-    {key:'PopulationPeakDay',label:'Pop peak day',luaTable:'ZombieConfig',min:0,max:365,step:1,def:28},
-  ]},
-  {id:'zchar',label:'Zombie Character',settings:[
-    {key:'Speed',label:'Speed',luaTable:'ZombieLore',min:1,max:4,step:1,def:4,enum:['Sprinters','Fast shamblers','Shamblers','Random']},
-    {key:'Strength',label:'Strength',luaTable:'ZombieLore',min:1,max:4,step:1,def:2,enum:['Superhuman','Normal','Weak','Random']},
-    {key:'Toughness',label:'Toughness',luaTable:'ZombieLore',min:1,max:4,step:1,def:4,enum:['Tough','Normal','Fragile','Random']},
-    {key:'Transmission',label:'Transmission',luaTable:'ZombieLore',min:1,max:4,step:1,def:1,enum:['Blood + saliva','Saliva only','Everyone infected','None']},
-    {key:'Mortality',label:'Infection mortality',luaTable:'ZombieLore',min:1,max:7,step:1,def:5,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days','1-2 weeks','Never']},
-    {key:'Reanimate',label:'Reanimate time',luaTable:'ZombieLore',min:1,max:6,step:1,def:3,enum:['Instant','0-30 sec','0-1 min','0-12 hrs','2-3 days','1-2 weeks']},
-    {key:'Cognition',label:'Cognition',luaTable:'ZombieLore',min:1,max:4,step:1,def:3,enum:['Navigate + doors','Navigate','Basic','Random']},
-    {key:'Memory',label:'Memory',luaTable:'ZombieLore',min:1,max:6,step:1,def:2,enum:['Long','Normal','Short','None','Random','Random (normal-none)']},
-    {key:'Sight',label:'Sight',luaTable:'ZombieLore',min:1,max:5,step:1,def:5,enum:['Eagle','Normal','Poor','Random','Random (normal-poor)']},
-    {key:'Hearing',label:'Hearing',luaTable:'ZombieLore',min:1,max:5,step:1,def:5,enum:['Pinpoint','Normal','Poor','Random','Random (normal-poor)']},
-    {key:'ThumpNoChasing',label:'Environmental attacks',luaTable:'ZombieLore',min:0,max:1,step:1,def:0,bool:true},
-    {key:'ThumpOnConstruction',label:'Damage construction',luaTable:'ZombieLore',min:0,max:1,step:1,def:1,bool:true},
-    {key:'ActiveOnly',label:'Day/night zombie speed',luaTable:'ZombieLore',min:1,max:3,step:1,def:1,enum:['Both','Night only','Day only']},
-    {key:'ZombiesDragDown',label:'Drag down',luaTable:'ZombieLore',min:0,max:1,step:1,def:1,bool:true},
-    {key:'ZombiesFenceLunge',label:'Zombie lunge',luaTable:'ZombieLore',min:0,max:1,step:1,def:1,bool:true},
-    {key:'DisableFakeDead',label:'Fake dead reanimation',luaTable:'ZombieLore',min:1,max:3,step:1,def:1,enum:['World zombies','World + combat','Never']},
-  ]},
-  {id:'zresp',label:'Zombie Respawn',settings:[
-    {key:'RespawnHours',label:'Respawn hrs (0=off)',luaTable:'ZombieConfig',min:0,max:8760,step:1,def:0},
-    {key:'RespawnUnseenHours',label:'Min unseen hrs',luaTable:'ZombieConfig',min:0,max:720,step:1,def:0},
-    {key:'RespawnMultiplier',label:'Respawn multiplier',luaTable:'ZombieConfig',min:0,max:1,step:0.01,def:0},
-  ]},
-  {id:'loot',label:'Loot by Category',settings:[
-    {key:'FoodLootNew',label:'Perishable food',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'CannedFoodLootNew',label:'Non-perishable food',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'SkillBookLoot',label:'Skill books',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'RecipeResourceLoot',label:'Recipe resources',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'LiteratureLootNew',label:'Other literature',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'SurvivalGearsLootNew',label:'Survival essentials',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'MedicalLootNew',label:'Medical',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'WeaponLootNew',label:'Melee weapons',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'RangedWeaponLootNew',label:'Ranged weapons',lootFloat:true,min:0,max:3,step:0.05,def:2.0},
-    {key:'AmmoLootNew',label:'Ammo',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'MechanicsLootNew',label:'Mechanics',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'ClothingLootNew',label:'Clothing',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'ContainerLootNew',label:'Bags',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'KeyLootNew',label:'Keys',lootFloat:true,min:0,max:3,step:0.05,def:0.4},
-    {key:'MediaLootNew',label:'Media',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'MementoLootNew',label:'Mementos',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'CookwareLootNew',label:'Cooking',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'MaterialLootNew',label:'Material',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'FarmingLootNew',label:'Farming',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'ToolLootNew',label:'Tools',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-    {key:'OtherLootNew',label:'Other / foraging',lootFloat:true,min:0,max:3,step:0.05,def:0.6},
-  ]},
-  {id:'lresp',label:'Loot Respawn & Cleanup',settings:[
-    {key:'SeenHoursPreventLootRespawn',label:'Visited no-respawn hrs',min:0,max:720,step:1,def:0},
-    {key:'HoursForWorldItemRemoval',label:'Ground item removal hrs (0=never)',min:0,max:2160,step:1,def:24},
-  ]},
-  {id:'char',label:'Character & Survival',settings:[
-    {key:'Global',label:'XP multiplier (global)',luaTable:'MultiplierConfig',min:0.1,max:10,step:0.1,def:1.0},
-    {key:'StatsDecrease',label:'Stats decrease rate',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
-    {key:'EndRegen',label:'Endurance regen',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
-    {key:'InjurySeverity',label:'Injury severity',min:1,max:3,step:1,def:2,enum:['Low','Normal','High']},
-    {key:'BoneFracture',label:'Bone fractures',min:0,max:1,step:1,def:1,bool:true},
-    {key:'CharacterFreePoints',label:'Free trait points',min:-100,max:100,step:1,def:0},
-    {key:'MultiHitZombies',label:'Multi-hit zombies',min:0,max:1,step:1,def:0,bool:true},
-    {key:'RearVulnerability',label:'Rear bite vulnerability',min:1,max:3,step:1,def:3,enum:['Low','Medium','High']},
-    {key:'AttackBlockMovements',label:'Attack blocks movement',min:0,max:1,step:1,def:1,bool:true},
-  ]},
-  {id:'env',label:'Environment',settings:[
-    {key:'Temperature',label:'Temperature',min:1,max:5,step:1,def:3,enum:['Very cold','Cold','Normal','Hot','Very hot']},
-    {key:'Rain',label:'Rain frequency',min:1,max:5,step:1,def:3,enum:['Very dry','Dry','Normal','Rainy','Very rainy']},
-    {key:'NightDarkness',label:'Night darkness',min:1,max:4,step:1,def:3,enum:['Pitch black','Dark','Normal','Bright']},
-    {key:'NightLength',label:'Night length',min:1,max:5,step:1,def:3,enum:['Always night','Long','Normal','Short','Always day']},
-    {key:'ErosionSpeed',label:'Erosion speed',min:1,max:5,step:1,def:3,enum:['Very fast (20d)','Fast (50d)','Normal (100d)','Slow (200d)','Very slow (500d)']},
-    {key:'FireSpread',label:'Fire spreads',min:0,max:1,step:1,def:1,bool:true},
-    {key:'TimeSinceApo',label:'Months since apo start',min:1,max:12,step:1,def:1},
-  ]},
-  {id:'farm',label:'Farming & Nature',settings:[
-    {key:'Farming',label:'Plant growth speed',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
-    {key:'NatureAbundance',label:'Nature abundance',min:1,max:5,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant','Very abundant']},
-    {key:'PlantResilience',label:'Plant resilience',min:1,max:5,step:1,def:3,enum:['Very high','High','Normal','Low','Very low']},
-    {key:'PlantAbundance',label:'Plant yield',min:1,max:5,step:1,def:3,enum:['Very poor','Poor','Normal','Abundant','Very abundant']},
-    {key:'FishAbundance',label:'Fishing abundance',min:1,max:5,step:1,def:2,enum:['Very poor','Poor','Normal','Abundant','Very abundant']},
-    {key:'FoodRotSpeed',label:'Food rot speed',min:1,max:5,step:1,def:3,enum:['Very fast','Fast','Normal','Slow','Very slow']},
-    {key:'FridgeFactor',label:'Fridge effectiveness',min:1,max:6,step:1,def:3,enum:['Very low','Low','Normal','High','Very high','No decay']},
-    {key:'CompostTime',label:'Compost time',min:1,max:7,step:1,def:2,enum:['1 week','2 weeks','3 weeks','4 weeks','6 weeks','8 weeks','10 weeks']},
-  ]},
-  {id:'meta',label:'Meta Events',settings:[
-    {key:'Helicopter',label:'Helicopter events',min:1,max:4,step:1,def:2,enum:['Never','Once','Sometimes','Often']},
-    {key:'MetaEvent',label:'Meta events',min:1,max:3,step:1,def:2,enum:['Never','Sometimes','Often']},
-    {key:'GeneratorSpawning',label:'Generator spawn',min:1,max:7,step:1,def:4,enum:['None','Insanely rare','Extremely rare','Rare','Normal','Common','Abundant']},
-    {key:'SurvivorHouseChance',label:'Survivor house',min:1,max:7,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often','Always tries']},
-    {key:'VehicleStoryChance',label:'Vehicle story',min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
-    {key:'ZoneStoryChance',label:'Zone story',min:1,max:5,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often']},
-    {key:'AnnotatedMapChance',label:'Annotated maps',min:1,max:6,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
-    {key:'Alarm',label:'House alarms',min:1,max:6,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
-    {key:'LockedHouses',label:'Locked houses',min:1,max:6,step:1,def:6,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
-  ]},
-  {id:'veh',label:'Vehicles',settings:[
-    {key:'CarSpawnRate',label:'Car spawn rate',min:1,max:5,step:1,def:3,enum:['None','Very low','Low','Normal','High']},
-    {key:'ChanceHasGas',label:'Chance has gas',min:1,max:3,step:1,def:1,enum:['Low','Normal','High']},
-    {key:'InitialGas',label:'Car initial gas',min:1,max:6,step:1,def:2,enum:['Very low','Low','Normal','High','Very high','Full']},
-    {key:'FuelStationGasMin',label:'Fuel station min %',min:0,max:1,step:0.05,def:0.0},
-    {key:'FuelStationGasMax',label:'Fuel station max %',min:0,max:1,step:0.05,def:0.8},
-    {key:'CarGasConsumption',label:'Gas consumption multi',min:0,max:10,step:0.1,def:1.0},
-    {key:'CarGeneralCondition',label:'Car condition',min:1,max:5,step:1,def:3,enum:['Very low','Low','Normal','High','Very high']},
-    {key:'LockedCar',label:'Cars locked',min:1,max:6,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
-    {key:'TrafficJam',label:'Car wreck congestion',min:0,max:1,step:1,def:1,bool:true},
-    {key:'EnableVehicles',label:'Vehicles enabled',min:0,max:1,step:1,def:1,bool:true},
-    {key:'VehicleEasyUse',label:'Easy use (no keys)',min:0,max:1,step:1,def:0,bool:true},
-    {key:'ZombieAttractionMultiplier',label:'Engine noise multi',min:0,max:10,step:0.1,def:1.0},
-    {key:'CarAlarm',label:'Car alarm freq',min:1,max:6,step:1,def:3,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often']},
-    {key:'SirenShutoffHours',label:'Siren shutoff hrs (0=never)',min:0,max:168,step:1,def:0},
-  ]},
-  {id:'corps',label:'Corpses & Blood',settings:[
-    {key:'HoursForCorpseRemoval',label:'Corpse removal hrs (-1=never)',min:-1,max:2160,step:1,def:216},
-    {key:'DecayingCorpseHealthImpact',label:'Corpse decay impact',min:1,max:5,step:1,def:3,enum:['None','Low','Normal','High','Insane']},
-    {key:'BloodLevel',label:'Blood level',min:1,max:5,step:1,def:3,enum:['None','Low','Normal','High','Ultra gore']},
-    {key:'ClothingDegradation',label:'Clothing degradation',min:1,max:4,step:1,def:3,enum:['Disabled','Slow','Normal','Fast']},
-  ]},
-  {id:'misc',label:'Misc & Display',settings:[
-    {key:'StarterKit',label:'Starter kit',min:0,max:1,step:1,def:0,bool:true},
-    {key:'AllowMiniMap',label:'Allow minimap',luaTable:'Map',min:0,max:1,step:1,def:0,bool:true},
-    {key:'AllowWorldMap',label:'Allow world map',luaTable:'Map',min:0,max:1,step:1,def:1,bool:true},
-    {key:'MapAllKnown',label:'Map all known at start',luaTable:'Map',min:0,max:1,step:1,def:0,bool:true},
-    {key:'Nutrition',label:'Nutrition system',min:0,max:1,step:1,def:1,bool:true},
-    {key:'EnablePoisoning',label:'Food poisoning',min:0,max:1,step:1,def:1,bool:true},
-    {key:'GeneratorFuelConsumption',label:'Generator fuel/hr',min:0,max:10,step:0.1,def:0.1},
-    {key:'LightBulbLifespan',label:'Lightbulb lifespan (0=never)',min:0,max:10,step:0.1,def:2.0},
-    {key:'AllowExteriorGenerator',label:'Generators work outside',min:0,max:1,step:1,def:1,bool:true},
-    {key:'ConstructionBonusPoints',label:'Construction HP bonus',min:1,max:5,step:1,def:3,enum:['None','Low','Normal','High','Very high']},
-  ]},
-  // ─── B42 ADDITIONS ───────────────────────────────────────────────
-  {id:'b42animals',label:'Animals & Livestock',b42:true,settings:[
-    {key:'AnimalStatsModifier',label:'Animal stats modifier',b42:true,min:1,max:6,step:1,def:4,enum:['Very fast','Fast','Normal','Slow','Very slow','Stopped']},
-    {key:'AnimalRanchChance',label:'Ranch spawn chance',b42:true,min:1,max:7,step:1,def:5,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often','Always']},
-    {key:'AnimalMatingSeason',label:'Mating seasons',b42:true,min:0,max:1,step:1,def:1,bool:true},
-    {key:'AnimalMetaPredator',label:'Predator meta events',b42:true,min:0,max:1,step:1,def:0,bool:true},
-    {key:'AnimalSoundAttractZombies',label:'Animal sounds attract zombies',b42:true,min:0,max:1,step:1,def:1,bool:true},
-  ]},
-  {id:'b42craft',label:'Crafting & Resources',b42:true,settings:[
-    {key:'CraftingYieldMultiplier',label:'Crafting yield multi',b42:true,min:0.1,max:5,step:0.1,def:1.0},
-    {key:'OreSpawnMultiplier',label:'Ore spawn multi',b42:true,min:0,max:4,step:0.1,def:1.0},
-    {key:'BlacksmithingEnabled',label:'Blacksmithing enabled',b42:true,min:0,max:1,step:1,def:1,bool:true},
-    {key:'PotteryEnabled',label:'Pottery enabled',b42:true,min:0,max:1,step:1,def:1,bool:true},
-  ]},
-  {id:'b42world',label:'Basements & Darkness',b42:true,settings:[
-    {key:'SpawnFrequency',label:'Basement spawn frequency',luaTable:'Basement',b42:true,min:1,max:7,step:1,def:4,enum:['Never','Extremely rare','Rare','Sometimes','Often','Very often','Always']},
-    {key:'UndergroundDarkness',label:'Underground darkness',b42:true,min:1,max:3,step:1,def:2,enum:['Pitch black','Dark','Normal']},
-  ]},
-]},
-];
-
-// ─── PRESETS ─────────────────────────────────────────────────────────
-// Apocalypse = PZwiki documented defaults (lore canon).
-// Outbreak / Extinction / Rising = reconstructed from TIS blog + community
-// guides. Not officially published per-value — status bar warns user.
-const PRESETS={
-  apocalypse:{
-    note:null,
-    sandbox:{Zombies:4,Speed:4,Strength:2,Toughness:4,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:2,Sight:5,Hearing:5,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,ZombiesDragDown:1,ZombiesFenceLunge:1,DisableFakeDead:1,PopulationMultiplier:0.65,PopulationStartMultiplier:1.0,PopulationPeakMultiplier:1.5,PopulationPeakDay:28,RespawnHours:0,RespawnUnseenHours:0,RespawnMultiplier:0,FoodLootNew:0.6,CannedFoodLootNew:0.6,SkillBookLoot:0.6,RecipeResourceLoot:0.6,LiteratureLootNew:0.6,SurvivalGearsLootNew:0.6,MedicalLootNew:0.6,WeaponLootNew:0.6,RangedWeaponLootNew:2.0,AmmoLootNew:0.6,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.6,KeyLootNew:0.4,MediaLootNew:0.6,MementoLootNew:0.6,CookwareLootNew:0.6,MaterialLootNew:0.6,FarmingLootNew:0.6,ToolLootNew:0.6,OtherLootNew:0.6,Global:1.0,StatsDecrease:3,EndRegen:3,InjurySeverity:2,BoneFracture:1,MultiHitZombies:0,RearVulnerability:3,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:3,NightLength:3,ErosionSpeed:3,WaterShut:2,ElecShut:2,Farming:3,NatureAbundance:3,PlantResilience:3,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:3,FishAbundance:2,Helicopter:2,MetaEvent:2,GeneratorSpawning:4,SurvivorHouseChance:3,AnnotatedMapChance:4,Alarm:4,LockedHouses:6,CarSpawnRate:3,ChanceHasGas:1,InitialGas:2,FuelStationGasMin:0.0,FuelStationGasMax:0.8,CarGasConsumption:1.0,CarGeneralCondition:3,LockedCar:4,CarAlarm:3,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:3,BloodLevel:3,ClothingDegradation:3,StarterKit:0,AllowMiniMap:0,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:2.0,AllowExteriorGenerator:1,ConstructionBonusPoints:3,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:5,AnimalMatingSeason:1,AnimalMetaPredator:0,AnimalSoundAttractZombies:1},
-    ini:{PVP:1,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
-  },
-  extinction:{
-    note:null,
-    sandbox:{Zombies:3,Speed:4,Strength:1,Toughness:1,Transmission:1,Mortality:5,Reanimate:3,Cognition:4,Memory:1,Sight:2,Hearing:2,ThumpNoChasing:1,ThumpOnConstruction:1,ActiveOnly:2,ZombiesDragDown:1,ZombiesFenceLunge:1,DisableFakeDead:2,PopulationMultiplier:1.2,PopulationStartMultiplier:1.5,PopulationPeakMultiplier:2.0,PopulationPeakDay:28,RespawnHours:72,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLootNew:0.4,CannedFoodLootNew:0.4,SkillBookLoot:0.4,RecipeResourceLoot:0.4,LiteratureLootNew:0.6,SurvivalGearsLootNew:0.4,MedicalLootNew:0.4,WeaponLootNew:0.4,RangedWeaponLootNew:0.6,AmmoLootNew:0.2,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.4,KeyLootNew:0.4,MediaLootNew:0.4,MementoLootNew:0.6,CookwareLootNew:0.6,MaterialLootNew:0.6,FarmingLootNew:0.6,ToolLootNew:0.4,OtherLootNew:0.4,Global:1.0,StatsDecrease:3,EndRegen:3,InjurySeverity:3,BoneFracture:1,MultiHitZombies:0,RearVulnerability:3,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:1,NightLength:3,ErosionSpeed:3,WaterShut:2,ElecShut:2,Farming:3,NatureAbundance:2,PlantResilience:4,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:3,FishAbundance:2,Helicopter:3,MetaEvent:3,GeneratorSpawning:2,SurvivorHouseChance:2,AnnotatedMapChance:2,Alarm:5,LockedHouses:6,CarSpawnRate:3,ChanceHasGas:1,InitialGas:2,FuelStationGasMin:0.0,FuelStationGasMax:0.7,CarGasConsumption:1.0,CarGeneralCondition:2,LockedCar:6,CarAlarm:4,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:4,BloodLevel:3,ClothingDegradation:4,StarterKit:0,AllowMiniMap:0,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:1.0,AllowExteriorGenerator:1,ConstructionBonusPoints:3,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:4,AnimalMatingSeason:1,AnimalMetaPredator:1,AnimalSoundAttractZombies:1},
-    ini:{PVP:1,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
-  },
-  outbreak:{
-    note:null,
-    sandbox:{Zombies:4,Speed:4,Strength:2,Toughness:4,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:2,Sight:5,Hearing:5,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,ZombiesDragDown:1,ZombiesFenceLunge:1,DisableFakeDead:1,PopulationMultiplier:0.65,PopulationStartMultiplier:1.0,PopulationPeakMultiplier:1.5,PopulationPeakDay:28,RespawnHours:0,RespawnUnseenHours:0,RespawnMultiplier:0,FoodLootNew:2.0,CannedFoodLootNew:0.6,SkillBookLoot:1.0,RecipeResourceLoot:0.6,LiteratureLootNew:0.8,SurvivalGearsLootNew:0.6,MedicalLootNew:0.6,WeaponLootNew:2.0,RangedWeaponLootNew:2.0,AmmoLootNew:0.6,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.6,KeyLootNew:0.6,MediaLootNew:2.0,MementoLootNew:0.6,CookwareLootNew:2.0,MaterialLootNew:0.6,FarmingLootNew:0.6,ToolLootNew:2.0,OtherLootNew:0.6,Global:1.0,StatsDecrease:3,EndRegen:2,InjurySeverity:1,BoneFracture:1,MultiHitZombies:1,RearVulnerability:3,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:3,NightLength:3,ErosionSpeed:3,WaterShut:3,ElecShut:3,Farming:3,NatureAbundance:3,PlantResilience:2,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:4,FishAbundance:3,Helicopter:2,MetaEvent:2,GeneratorSpawning:5,SurvivorHouseChance:4,AnnotatedMapChance:5,Alarm:4,LockedHouses:6,CarSpawnRate:4,ChanceHasGas:2,InitialGas:3,FuelStationGasMin:0.5,FuelStationGasMax:0.9,CarGasConsumption:1.0,CarGeneralCondition:3,LockedCar:3,CarAlarm:3,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:3,BloodLevel:3,ClothingDegradation:3,StarterKit:0,AllowMiniMap:1,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:2.0,AllowExteriorGenerator:1,ConstructionBonusPoints:4,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:6,AnimalMatingSeason:0,AnimalMetaPredator:0,AnimalSoundAttractZombies:1},
-    ini:{PVP:1,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
-  },
-  rising:{
-    note:null,
-    sandbox:{Zombies:5,Speed:3,Strength:3,Toughness:3,Transmission:1,Mortality:5,Reanimate:3,Cognition:3,Memory:3,Sight:2,Hearing:3,ThumpNoChasing:0,ThumpOnConstruction:1,ActiveOnly:1,ZombiesDragDown:1,ZombiesFenceLunge:0,DisableFakeDead:3,PopulationMultiplier:0.15,PopulationStartMultiplier:1.0,PopulationPeakMultiplier:1.0,PopulationPeakDay:28,RespawnHours:72,RespawnUnseenHours:16,RespawnMultiplier:0.1,FoodLootNew:0.6,CannedFoodLootNew:0.6,SkillBookLoot:0.4,RecipeResourceLoot:0.8,LiteratureLootNew:0.6,SurvivalGearsLootNew:2.0,MedicalLootNew:0.6,WeaponLootNew:0.4,RangedWeaponLootNew:0.4,AmmoLootNew:0.4,MechanicsLootNew:0.6,ClothingLootNew:0.6,ContainerLootNew:0.6,KeyLootNew:0.6,MediaLootNew:2.0,MementoLootNew:0.6,CookwareLootNew:2.0,MaterialLootNew:3.0,FarmingLootNew:2.0,ToolLootNew:2.0,OtherLootNew:0.6,Global:1.0,StatsDecrease:3,EndRegen:3,InjurySeverity:1,BoneFracture:0,MultiHitZombies:1,RearVulnerability:2,AttackBlockMovements:1,Temperature:3,Rain:3,NightDarkness:3,NightLength:3,ErosionSpeed:3,WaterShut:3,ElecShut:3,Farming:3,NatureAbundance:3,PlantResilience:3,PlantAbundance:3,FoodRotSpeed:3,FridgeFactor:3,FishAbundance:3,Helicopter:1,MetaEvent:2,GeneratorSpawning:4,SurvivorHouseChance:3,AnnotatedMapChance:4,Alarm:2,LockedHouses:5,CarSpawnRate:4,ChanceHasGas:2,InitialGas:3,FuelStationGasMin:0.7,FuelStationGasMax:1.0,CarGasConsumption:0.6,CarGeneralCondition:3,LockedCar:3,CarAlarm:3,TrafficJam:1,HoursForCorpseRemoval:216,DecayingCorpseHealthImpact:3,BloodLevel:3,ClothingDegradation:3,StarterKit:1,AllowMiniMap:1,AllowWorldMap:1,Nutrition:1,GeneratorFuelConsumption:0.1,LightBulbLifespan:3.0,AllowExteriorGenerator:1,ConstructionBonusPoints:4,SpawnFrequency:4,AnimalStatsModifier:4,AnimalRanchChance:6,AnimalMatingSeason:1,AnimalMetaPredator:0,AnimalSoundAttractZombies:0},
-    ini:{PVP:0,SafetySystem:1,SleepAllowed:0,SleepNeeded:0,HoursForLootRespawn:0},
-  },
+// ─── LOOT SNAP LABELS (keys match Apocalypse.lua factor names) ────────
+const LOOT_FACTOR_LABELS = {
+  InsaneLootFactor:'Insane', ExtremeLootFactor:'Extreme rare',
+  RareLootFactor:'Rare', NormalLootFactor:'Normal',
+  CommonLootFactor:'Common', AbundantLootFactor:'Abundant',
 };
 
-// ─── SETTING DESCRIPTIONS ─────────────────────────────────────────────
-const DESCS={
-  // server.ini — PVP & Safety
-  PVP:'When on, players can deal damage to each other. Turn off to keep everyone safe from friendly fire.',
-  SafetySystem:'Each player can toggle their own PvP state using a skull icon. They only deal or take player damage when they deliberately go into PvP mode.',
-  // Sleep
-  SleepAllowed:'Lets players sleep in beds to skip time. If off, the sleep button does nothing.',
-  SleepNeeded:'When on, characters get fatigue penalties if they skip sleep. When off, sleep is optional with no downside.',
-  // Safehouses
-  PlayerSafehouse:'Allows players to claim a building as their private safehouse, locking others out.',
-  SafehouseDaySurvivedToClaim:'How many in-game days a player must survive before being allowed to claim a safehouse.',
-  // Server
-  MaxPlayers:'Maximum number of players that can be online at the same time.',
-  PauseEmpty:'Pauses the world clock — zombies, weather, plant growth — when no players are logged in.',
-  HoursForLootRespawn:'Server-side loot respawn timer. After this many in-game hours, eligible containers refill. 0 = loot never respawns.',
-  // World Timeline
-  DayLength:'How long a full day-night cycle lasts in real time, from 15 minutes to nearly a full day.',
-  StartMonth:'The calendar month the game world begins in.',
-  StartDay:'The day of the month the game world starts on (1–28). Combined with Start Month to set the exact opening date.',
-  StartTime:'The time of day survivors first wake up on day one.',
-  WaterShut:'Roughly when public water service stops working, pressuring players to stockpile clean water before it runs out.',
-  ElecShut:'Roughly when electricity shuts off, forcing reliance on generators and batteries.',
-  WaterShutModifier:'Overrides the Water Shutoff range — forces water to fail on this exact in-game day. -1 = use the random range.',
-  ElecShutModifier:'Overrides the Elec Shutoff range — forces electricity to fail on this exact in-game day. -1 = use the random range.',
-  // Zombie Population
-  Zombies:'Overall zombie population preset, from Low to Insane.',
-  Distribution:'Whether zombies cluster in cities (urban focused) or spread evenly across the whole map.',
-  PopulationStartMultiplier:'Multiplier applied to zombie count on day one, before the population ramps up.',
-  PopulationPeakMultiplier:'Multiplier for the zombie count at peak population.',
-  PopulationPeakDay:'Which in-game day the zombie population reaches its peak.',
-  // Zombie Character
-  Speed:'How fast zombies move — slow shamblers, fast shamblers, or sprinters.',
-  Strength:'How hard zombies hit when they attack you.',
-  Toughness:'How hard zombies are to kill.',
-  Transmission:'How infection spreads — through blood and saliva, saliva only, or everyone starts infected regardless.',
-  Mortality:'How fast zombie infection kills you once bitten, from instant to 1–2 weeks.',
-  Reanimate:'How quickly dead bodies get back up as zombies.',
-  Cognition:'How smart zombies are — whether they wander aimlessly, navigate around obstacles, or can open doors.',
-  Memory:'How long zombies remember where they heard or saw you before losing interest.',
-  Sight:'How far zombies can see you.',
-  Hearing:'How well zombies detect sounds like gunshots, engines, or footsteps.',
-  ThumpNoChasing:'When on, idle zombies bang on doors and walls even when they aren\'t chasing anyone.',
-  ThumpOnConstruction:'When on, zombies attack and slowly tear down player-built walls and barricades.',
-  ActiveOnly:'Whether zombies stay active all the time (day and night), or only become aggressive at night.',
-  ZombiesDragDown:'Lets a group of zombies grab and drag you to the ground, briefly pinning you.',
-  ZombiesFenceLunge:'Allows zombies to lunge over fences when you get too close to the other side.',
-  DisableFakeDead:'"World only" — only randomly spawned zombies can play dead on the ground. "World + kills" — zombies you kill may also get back up.',
-  // Zombie Respawn
-  RespawnHours:'How many in-game hours before zombies can respawn in a cleared area. 0 = respawn is off.',
-  RespawnUnseenHours:'An area must go unvisited for this many hours before zombies will respawn there.',
-  RespawnMultiplier:'What fraction of the original population respawns each cycle (e.g. 0.1 = 10%).',
-  // Loot by Category (B42 floats: 0.05=Insane, 0.2=Extreme, 0.6=Rare, 1.0=Normal, 2.0=Common, 3.0=Abundant)
-  FoodLootNew:'How often fresh / perishable food items spawn in containers.',
-  CannedFoodLootNew:'How often canned and preserved non-perishable food spawns.',
-  SkillBookLoot:'How often skill books that grant XP on reading spawn.',
-  RecipeResourceLoot:'How often recipe books and crafting reference materials spawn.',
-  LiteratureLootNew:'How often other literature — magazines, newspapers, notes — spawns.',
-  SurvivalGearsLootNew:'How often survival essentials spawn — seeds, fishing gear, nails, and similar items.',
-  MedicalLootNew:'How often medical supplies spawn.',
-  WeaponLootNew:'How often melee weapons spawn.',
-  RangedWeaponLootNew:'How often guns and ranged weapons spawn. Boosted in Apocalypse to reflect 1993 Kentucky gun culture.',
-  AmmoLootNew:'How often ammunition spawns.',
-  MechanicsLootNew:'How often car parts and mechanical items spawn.',
-  ClothingLootNew:'How often clothing items spawn.',
-  ContainerLootNew:'How often bags, backpacks, and containers spawn.',
-  KeyLootNew:'How often vehicle and door keys spawn.',
-  MediaLootNew:'How often VHS tapes, CDs, and other media spawn.',
-  MementoLootNew:'How often keepsakes and personal effect items spawn.',
-  CookwareLootNew:'How often cooking pots, pans, and kitchen tools spawn.',
-  MaterialLootNew:'How often raw crafting materials spawn.',
-  FarmingLootNew:'How often farming supplies and seeds spawn.',
-  ToolLootNew:'How often tools spawn.',
-  OtherLootNew:'How often miscellaneous items spawn, including forage drops in town and road zones.',
-  // Loot Respawn & Cleanup
-  SeenHoursPreventLootRespawn:'If you have visited an area recently, loot there won\'t respawn until this many hours have passed.',
-  HoursForWorldItemRemoval:'How long items dropped on the ground persist before despawning. 0 = they never despawn.',
-  // Character & Survival
-  Global:'Global XP multiplier applied to all skill gains. Each skill can also be overridden individually in MultiplierConfig.',
-  StatsDecrease:'How quickly hunger, thirst, and fatigue drain from your character.',
-  EndRegen:'How fast endurance recovers after sprinting or exertion.',
-  InjurySeverity:'How bad wounds are and how much they affect your character stats while healing.',
-  BoneFracture:'When on, severe impacts can break bones, requiring splints and rest to recover.',
-  CharacterFreePoints:'Bonus trait points awarded at character creation.',
-  MultiHitZombies:'When on, a single melee swing can hit several zombies at once.',
-  RearVulnerability:'How likely you are to be bitten when a zombie attacks from behind.',
-  AttackBlockMovements:'When on, swinging a weapon temporarily slows your movement.',
-  // Environment
-  Temperature:'Ambient temperature of the world, from very cold to hot.',
-  Rain:'How frequently it rains.',
-  NightDarkness:'How dark nights get, from pitch black to almost as bright as day.',
-  NightLength:'How long the night portion of each day lasts.',
-  ErosionSpeed:'How quickly weeds and vegetation overtake buildings and roads.',
-  FireSpread:'When on, fires spread to adjacent tiles and can burn down entire blocks.',
-  TimeSinceApo:'How many months have passed since the apocalypse started, affecting erosion and the overall state of the world.',
-  // Farming & Nature
-  Farming:'How fast crops grow.',
-  NatureAbundance:'How much wild food and foraging material is available in nature.',
-  PlantResilience:'How easily plants get sick or die from poor conditions like drought or disease.',
-  PlantAbundance:'How much produce you harvest from each plant.',
-  FoodRotSpeed:'How fast food spoils.',
-  FridgeFactor:'How effective refrigerators are at slowing food spoilage.',
-  CompostTime:'How long it takes for organic material to finish composting.',
-  // Meta Events
-  Helicopter:'How often a helicopter event occurs, generating noise that draws in zombie hordes.',
-  MetaEvent:'How often random off-screen events happen — distant gunshots, screams, and similar sounds.',
-  GeneratorSpawning:'How often generators are found sitting in the world.',
-  SurvivorHouseChance:'How often randomized survivor homes appear on the map.',
-  VehicleStoryChance:'How often special story-based vehicle scenes appear.',
-  ZoneStoryChance:'How often story-driven zone scenes appear.',
-  AnnotatedMapChance:'How often you find maps that have hand-written survivor notes on them.',
-  Alarm:'How often buildings spawn with an active burglar alarm.',
-  LockedHouses:'How often houses spawn with locked doors.',
-  // Vehicles
-  CarSpawnRate:'How many cars are present on the map.',
-  ChanceHasGas:'How likely a parked car has fuel in the tank.',
-  InitialGas:'How much fuel cars have when you find them.',
-  FuelStationGasMin:'Minimum fuel level (0.0–1.0) when a gas station has fuel.',
-  FuelStationGasMax:'Maximum fuel level (0.0–1.0) when a gas station has fuel.',
-  CarGasConsumption:'Multiplier for how fast cars burn through fuel.',
-  CarGeneralCondition:'How damaged or worn spawned cars are.',
-  LockedCar:'How often cars spawn locked, requiring hotwiring or a key to drive.',
-  TrafficJam:'When on, roads are blocked by traffic jam wrecks left over from the early days of the outbreak.',
-  EnableVehicles:'Turns vehicles on or off entirely.',
-  VehicleEasyUse:'When on, cars don\'t require keys — just get in and drive.',
-  ZombieAttractionMultiplier:'Multiplier for how much engine noise attracts nearby zombies.',
-  CarAlarm:'How often cars have active alarms that trigger when the door is opened.',
-  SirenShutoffHours:'How many hours until a triggered siren auto-silences. 0 = sirens never stop on their own.',
-  // Corpses & Blood
-  HoursForCorpseRemoval:'How long zombie bodies stay on the ground before despawning. -1 = corpses never despawn.',
-  DecayingCorpseHealthImpact:'Whether nearby rotting corpses cause health and morale penalties.',
-  BloodLevel:'How much blood and gore is visible in the world.',
-  ClothingDegradation:'How quickly clothing wears out and loses its protective value over time.',
-  // Misc & Display
-  StarterKit:'When on, new characters spawn with a small set of starting items to help early survival.',
-  AllowMiniMap:'When on, players can use the small in-game minimap overlay.',
-  AllowWorldMap:'When on, players can open the full world map.',
-  MapAllKnown:'When on, the entire world map is revealed to all players from day one.',
-  Nutrition:'Enables the nutrition system — food has macronutrient values that affect your character\'s health and stats.',
-  EnablePoisoning:'When on, eating spoiled or poisonous food causes illness.',
-  GeneratorFuelConsumption:'Multiplier for how much fuel generators burn per hour.',
-  LightBulbLifespan:'Multiplier for how long light bulbs last before burning out. 0 = bulbs never burn out.',
-  AllowExteriorGenerator:'When on, generators placed outside can power electronics through exterior walls.',
-  ConstructionBonusPoints:'How much extra HP player-built structures have beyond the default.',
-  // B42 — Animals & Livestock
-  AnimalStatsModifier:'Modifies animal stat values (speed, health, etc.) — higher = faster/tougher animals (B42).',
-  AnimalRanchChance:'How often farms and ranches spawn with domesticated animals already present (B42).',
-  AnimalMatingSeason:'When on, animals only breed during their natural mating season (B42).',
-  AnimalMetaPredator:'When on, predator meta-events (wolf/bear attacks on livestock) can occur off-screen (B42).',
-  AnimalSoundAttractZombies:'When on, animal sounds can attract nearby zombies (B42).',
-  // B42 — Crafting & Resources
-  CraftingYieldMultiplier:'Multiplier for how many items crafting recipes produce (B42).',
-  OreSpawnMultiplier:'Multiplier for how much ore and raw mineral deposits appear in the world (B42).',
-  BlacksmithingEnabled:'When on, players can forge metal tools and weapons at a forge (B42).',
-  PotteryEnabled:'When on, players can craft pottery items from clay (B42).',
-  // B42 — Basements & Darkness
-  SpawnFrequency:'How often buildings generate with an accessible basement (B42).',
-  UndergroundDarkness:'How dark underground areas and basements are without a light source (B42).',
-};
+// ─── MUTABLE STATE (populated by loadGameFiles) ───────────────────────
+let SCHEMA=[], PRESETS={}, LOOT_SNAPS=[];
+let settingMap={}, values=[], collapsed={};
 
-// ─── STATE ────────────────────────────────────────────────────────────
-let values=[{},{},{}];
-let collapsed={};
-
-const settingMap={};
-for(const f of SCHEMA){
-  settingMap[f.id]={};
-  for(const g of f.groups) for(const s of g.settings) settingMap[f.id][s.key]=s;
+// ─── VALUE HELPERS ────────────────────────────────────────────────────
+function nearestLootSnap(v){
+  if(!LOOT_SNAPS.length) return v;
+  return LOOT_SNAPS.reduce((best,[sv])=>Math.abs(v-sv)<Math.abs(v-best)?sv:best,LOOT_SNAPS[0][0]);
+}
+function lootLabel(v){
+  const snap=LOOT_SNAPS.find(([sv])=>Math.abs(v-sv)<0.001);
+  return snap?snap[1]:'~'+parseFloat(v.toFixed(2));
+}
+function clamp(s,v){
+  if(s.type==='bool') return v>=0.5?1:0;
+  if(s.type==='enum') return Math.max(1,Math.min(s.options.length,Math.round(v)));
+  if(s.type==='lootSelect') return nearestLootSnap(v);
+  return v;
+}
+function fmtDisplay(s,v){
+  if(s.type==='bool') return v>=0.5?'on':'off';
+  if(s.type==='lootSelect') return lootLabel(v);
+  if(s.type==='enum'){const i=Math.round(v)-1;return s.options[Math.max(0,Math.min(s.options.length-1,i))]||String(Math.round(v));}
+  const n=parseFloat(v);
+  if(n===Math.floor(n)&&Math.abs(n)<1e9) return String(Math.floor(n));
+  return parseFloat(n.toFixed(2)).toString();
+}
+function fmtFile(s,v){
+  if(s.type==='bool') return v>=0.5?'true':'false';
+  if(s.type==='lootSelect') return parseFloat(nearestLootSnap(v).toFixed(2)).toString();
+  if(s.type==='enum') return String(Math.round(v));
+  const n=parseFloat(v);
+  if(n===Math.floor(n)&&Math.abs(n)<1e9) return String(Math.floor(n));
+  return parseFloat(n.toFixed(2)).toString();
+}
+function avg3(s,a,b,c){
+  const x=(a+b+c)/3;
+  if(s.type==='bool'||s.type==='enum') return Math.round(x);
+  if(s.type==='lootSelect') return nearestLootSnap(x);
+  return x;
 }
 
+// ─── INIT / PRESET ────────────────────────────────────────────────────
 function initValues(){
   values=[{},{},{}];
   for(const f of SCHEMA) for(let p=0;p<3;p++){
@@ -529,59 +196,29 @@ function initValues(){
     for(const g of f.groups) for(const s of g.settings) values[p][f.id][s.key]=s.def;
   }
 }
-initValues();
-
-// ─── PRESET APPLICATION ───────────────────────────────────────────────
 function applyPreset(pi,name){
-  if(name==='' || name===undefined) {
+  if(!name){
     for(const f of SCHEMA) for(const g of f.groups) for(const s of g.settings) values[pi][f.id][s.key]=s.def;
-    rebuildSliders();
-    const pname=document.getElementById('p'+pi).value||'Player '+(pi+1);
-    setStatus(`Reset ${pname} to defaults`);
+    rebuildControls();
+    setStatus('Reset '+(document.getElementById('p'+pi).value||'Player '+(pi+1))+' to defaults');
     return;
   }
   const pr=PRESETS[name]; if(!pr) return;
   if(pr.sandbox) for(const[k,v] of Object.entries(pr.sandbox)){const s=settingMap['sandbox']?.[k];if(s) values[pi]['sandbox'][k]=clamp(s,v);}
   if(pr.ini) for(const[k,v] of Object.entries(pr.ini)){const s=settingMap['ini']?.[k];if(s) values[pi]['ini'][k]=clamp(s,v);}
-  rebuildSliders();
-  const pname=document.getElementById('p'+pi).value||'Player '+(pi+1);
-  const note=pr.note?` — ${pr.note}`:'';
-  setStatus(`"${name}" applied to ${pname}${note}`,'warn');
+  rebuildControls();
+  const note=pr.note?' — '+pr.note:'';
+  setStatus('"'+name+'" applied to '+(document.getElementById('p'+pi).value||'Player '+(pi+1))+note,'warn');
 }
-
-// ─── HELPERS ──────────────────────────────────────────────────────────
-function clamp(s,v){return Math.max(s.min,Math.min(s.max,v));}
-const LOOT_SNAPS=[[0,'None'],[0.05,'Insane'],[0.2,'Extreme rare'],[0.6,'Rare'],[1.0,'Normal'],[2.0,'Common'],[3.0,'Abundant']];
-function lootLabel(v){
-  for(const[sv,sl] of LOOT_SNAPS){if(Math.abs(v-sv)<0.001) return sl;}
-  return parseFloat(v.toFixed(2)).toString();
-}
-function fmtDisplay(s,v){
-  if(s.bool) return v>=0.5?'on':'off';
-  if(s.lootFloat) return lootLabel(parseFloat(v));
-  if(s.enum){const i=Math.round(v)-s.min;return s.enum[Math.max(0,Math.min(s.enum.length-1,i))];}
-  if(s.step<0.1) return parseFloat(v.toFixed(2)).toString();
-  if(s.step<1) return parseFloat(v.toFixed(1)).toString();
-  return String(Math.round(v));
-}
-function fmtFile(s,v){
-  if(s.bool) return v>=0.5?'true':'false';
-  if(s.step<0.1) return parseFloat(v.toFixed(2)).toString();
-  if(s.step<1) return parseFloat(v.toFixed(1)).toString();
-  return String(Math.round(v));
-}
-function avg3(s,a,b,c){const x=(a+b+c)/3;return s.step>=1?Math.round(x):x;}
-
-// ─── PRESET DETECTION ─────────────────────────────────────────────────
 function presetMatches(pi,pr){
   for(const fid of['ini','sandbox']){
     const psec=fid==='ini'?pr.ini:pr.sandbox;
-    const f=SCHEMA.find(x=>x.id===fid);
+    const f=SCHEMA.find(x=>x.id===fid); if(!f) continue;
     for(const g of f.groups) for(const s of g.settings){
       const pv=psec?.[s.key];
       const cur=values[pi][fid][s.key];
-      if(pv!==undefined){if(cur!==clamp(s,pv)) return false;}
-      else{if(cur!==s.def) return false;}
+      if(pv!==undefined){if(Math.abs(cur-clamp(s,pv))>0.001) return false;}
+      else{if(Math.abs(cur-s.def)>0.001) return false;}
     }
   }
   return true;
@@ -589,7 +226,7 @@ function presetMatches(pi,pr){
 function detectPreset(pi){
   let isDefault=true;
   outer:for(const f of SCHEMA) for(const g of f.groups) for(const s of g.settings)
-    if(values[pi][f.id][s.key]!==s.def){isDefault=false;break outer;}
+    if(Math.abs(values[pi][f.id][s.key]-s.def)>0.001){isDefault=false;break outer;}
   if(isDefault) return '';
   for(const[name,pr] of Object.entries(PRESETS)) if(presetMatches(pi,pr)) return name;
   return 'custom';
@@ -597,15 +234,10 @@ function detectPreset(pi){
 function updatePresetDropdowns(){
   for(let i=0;i<3;i++) document.getElementById('preset'+i).value=detectPreset(i);
 }
-function fillGrad(el){
-  const pct=((el.value-el.min)/(el.max-el.min))*100;
-  const p=el.dataset.pcol;
-  const col=p==='0'?'var(--p0d)':p==='1'?'var(--p1d)':'var(--p2d)';
-  el.style.background=`linear-gradient(${col},${col}) no-repeat 0/${pct}% 100%,#3c3c3c`;
-}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────
 function getNames(){return[0,1,2].map(i=>document.getElementById('p'+i).value.trim()||'Player'+(i+1));}
 function setStatus(m,c){const e=document.getElementById('status');e.textContent=m;e.className=c||'';}
-
 function mkI(){const s=document.createElement('span');s.className='t-indent';return s;}
 
 // ─── PARSE ────────────────────────────────────────────────────────────
@@ -629,19 +261,13 @@ function parseLua(text){
   return r;
 }
 function applyParsed(pi,fid,parsed){
-  const fm=settingMap[fid];if(!fm) return;
+  const fm=settingMap[fid]; if(!fm) return;
   if(!values[pi][fid]) values[pi][fid]={};
   for(const[rawK,sv] of Object.entries(parsed)){
     let s=fm[rawK];
     if(!s){
-      // Handle Table.Key format from context-aware parseLua
       const dot=rawK.indexOf('.');
-      if(dot>0){
-        const schemaKey=rawK.slice(dot+1);
-        const luaTable=rawK.slice(0,dot);
-        const cand=fm[schemaKey];
-        if(cand&&cand.luaTable===luaTable) s=cand;
-      }
+      if(dot>0){const schemaKey=rawK.slice(dot+1);const luaTable=rawK.slice(0,dot);const cand=fm[schemaKey];if(cand&&cand.luaTable===luaTable) s=cand;}
     }
     if(!s) continue;
     let v=parseFloat(sv);
@@ -652,7 +278,7 @@ function applyParsed(pi,fid,parsed){
 
 // ─── FORMAT OUTPUT ────────────────────────────────────────────────────
 function formatIni(pi,isAvg){
-  const f=SCHEMA.find(x=>x.id==='ini');
+  const f=SCHEMA.find(x=>x.id==='ini'); if(!f) return '';
   const L=['# PZ Server Settings — generated by pz-vote',''];
   for(const g of f.groups){
     L.push('# '+g.label);
@@ -665,19 +291,13 @@ function formatIni(pi,isAvg){
   return L.join('\n');
 }
 function formatLua(pi,isAvg){
-  const f=SCHEMA.find(x=>x.id==='sandbox');
+  const f=SCHEMA.find(x=>x.id==='sandbox'); if(!f) return '';
   const L=['SandboxVars = {','    Version = 6,'];
   const byTable={};
-  for(const g of f.groups){
-    for(const s of g.settings){
-      const v=isAvg?fmtFile(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key])):fmtFile(s,values[pi][f.id][s.key]??s.def);
-      if(s.luaTable){
-        if(!byTable[s.luaTable]) byTable[s.luaTable]=[];
-        byTable[s.luaTable].push([s.key,v]);
-      } else {
-        L.push(`    ${s.key} = ${v},`);
-      }
-    }
+  for(const g of f.groups) for(const s of g.settings){
+    const v=isAvg?fmtFile(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key])):fmtFile(s,values[pi][f.id][s.key]??s.def);
+    if(s.luaTable){if(!byTable[s.luaTable]) byTable[s.luaTable]=[];byTable[s.luaTable].push([s.key,v]);}
+    else L.push(`    ${s.key} = ${v},`);
   }
   for(const[tbl,pairs] of Object.entries(byTable)){
     L.push(`    ${tbl} = {`);
@@ -687,7 +307,7 @@ function formatLua(pi,isAvg){
   L.push('}');return L.join('\n');
 }
 
-// ─── GITHUB FETCH / COMMIT ────────────────────────────────────────────
+// ─── GITHUB ───────────────────────────────────────────────────────────
 const RAW_BASE='https://raw.githubusercontent.com/bwinter/pz-vote/main/';
 const GH_API='https://api.github.com/repos/bwinter/pz-vote/contents/';
 function getToken(){return document.getElementById('gh-token').value.trim();}
@@ -703,16 +323,15 @@ async function loadAllFromGitHub(){
   setStatus('Loading from GitHub...');
   let any=false;
   for(let i=0;i<3;i++) if(await fetchPlayer(i)) any=true;
-  rebuildSliders();updatePresetDropdowns();
+  rebuildControls();updatePresetDropdowns();
   setStatus(any?'Loaded from GitHub — '+new Date().toLocaleTimeString():'No saved configs on GitHub — using defaults');
 }
 async function reloadPlayer(pi){
   const loaded=await fetchPlayer(pi);
-  rebuildSliders();updatePresetDropdowns();
+  rebuildControls();updatePresetDropdowns();
   const n=getNames();
   setStatus(loaded?'Loaded '+n[pi]+' from GitHub — '+new Date().toLocaleTimeString():'No saved config for '+n[pi]+' on GitHub');
 }
-
 async function ghSha(path){
   try{const r=await fetch(GH_API+path,{headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json'}});if(r.ok){const d=await r.json();return d.sha;}}catch(e){}
   return null;
@@ -732,7 +351,6 @@ function noToken(){
   setStatus('Add your GitHub token in Settings to enable saving','warn');
   return true;
 }
-
 async function commitPlayer(pi){
   if(!getToken()) return noToken();
   const n=getNames();
@@ -761,7 +379,188 @@ async function commitAll(){
   }catch(e){setStatus('Save failed: '+e.message,'warn');}
 }
 
+// ─── LOAD GAME FILES ──────────────────────────────────────────────────
+const GAME_BASE='./reference/game_files/';
+const PRESET_NAMES=['Apocalypse','Extinction','Outbreak','Rising','SixMonthsLater'];
+
+async function loadGameFiles(){
+  setStatus('Loading game files...');
+  try{
+    const[allowlist,sbJson,...presetTexts]=await Promise.all([
+      fetch('./reference/allowlist.json').then(r=>r.json()),
+      fetch(GAME_BASE+'Sandbox.json').then(r=>r.json()),
+      ...PRESET_NAMES.map(n=>fetch(GAME_BASE+'presets/'+n+'.lua').then(r=>r.text())),
+    ]);
+    const apoFlat=parseLua(presetTexts[0]);
+
+    // Build loot snaps from Apocalypse.lua factor keys
+    LOOT_SNAPS=Object.entries(LOOT_FACTOR_LABELS)
+      .map(([k,label])=>[parseFloat(apoFlat[k]||'0'),label])
+      .filter(([v])=>v>0)
+      .sort((a,b)=>a[0]-b[0]);
+
+    SCHEMA=buildSchema(allowlist,apoFlat,sbJson);
+
+    settingMap={};
+    for(const f of SCHEMA){settingMap[f.id]={};for(const g of f.groups) for(const s of g.settings) settingMap[f.id][s.key]=s;}
+
+    // Build PRESETS from .lua files
+    PRESETS={};
+    PRESET_NAMES.forEach((name,i)=>{
+      const flat=parseLua(presetTexts[i]);
+      PRESETS[name.toLowerCase()]={note:null,sandbox:buildPresetValues(flat,'sandbox'),ini:{}};
+    });
+
+    initValues();
+    buildTree();
+    loadAllFromGitHub();
+  }catch(e){
+    setStatus('Failed to load game files: '+e.message,'warn');
+    console.error(e);
+  }
+}
+
+// ─── SCHEMA BUILDER ───────────────────────────────────────────────────
+function humanize(key){return key.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase()).trim();}
+
+function detectType(key,rawValue,sbKey,sbJson,annotations){
+  if(annotations?.[key]?.type) return annotations[key].type;
+  if(sbJson['Sandbox_'+sbKey+'_option1']) return 'enum';
+  if(rawValue==='true'||rawValue==='false') return 'bool';
+  if(key.includes('Loot')&&!key.includes('Respawn')&&!key.includes('Hours')) return 'lootSelect';
+  return 'number';
+}
+
+function getEnumOptions(sbKey,sbJson){
+  const opts=[];
+  for(let i=1;sbJson['Sandbox_'+sbKey+'_option'+i];i++) opts.push(sbJson['Sandbox_'+sbKey+'_option'+i]);
+  return opts;
+}
+
+function buildPresetValues(flat,fid){
+  const vals={};
+  for(const[compositeKey,sv] of Object.entries(flat)){
+    const dot=compositeKey.indexOf('.');
+    const key=dot>=0?compositeKey.slice(dot+1):compositeKey;
+    const s=settingMap[fid]?.[key]; if(!s) continue;
+    let v=parseFloat(sv);
+    if(isNaN(v)) v=sv==='true'?1:0;
+    vals[key]=v;
+  }
+  return vals;
+}
+
+function buildSchema(allowlist,apoFlat,sbJson){
+  const{sandboxKeyMap={},annotations={},ini,sandbox}=allowlist;
+
+  // Map key → luaTable from parsed Apocalypse.lua (last one wins for ambiguous keys)
+  const luaTableOf={};
+  for(const compositeKey of Object.keys(apoFlat)){
+    const dot=compositeKey.indexOf('.');
+    if(dot>=0) luaTableOf[compositeKey.slice(dot+1)]=compositeKey.slice(0,dot);
+  }
+
+  const schema=[];
+
+  // INI file — fully defined in allowlist
+  if(ini){
+    const iniFile={id:'ini',label:'server.ini',ext:'ini',groups:[]};
+    for(const g of ini.groups){
+      const group={id:g.id,label:g.label,settings:[]};
+      for(const s of g.settings){
+        group.settings.push({
+          key:s.key,label:s.label||humanize(s.key),fid:'ini',
+          type:s.type,options:s.options||[],def:s.def??0,
+          tooltip:sbJson['Sandbox_'+s.key+'_tooltip']||'',
+        });
+      }
+      iniFile.groups.push(group);
+    }
+    schema.push(iniFile);
+  }
+
+  // Sandbox file — keys from allowlist, metadata from game files
+  if(sandbox){
+    const sbFile={id:'sandbox',label:'SandboxVars.lua',ext:'lua',groups:[]};
+    for(const g of sandbox.groups){
+      const group={id:g.id,label:g.label,b42:g.b42||false,settings:[]};
+      for(const key of g.keys){
+        // Group luaTableHint takes priority for disambiguation (e.g. ZombieLore.Strength vs MultiplierConfig.Strength)
+        let luaTable=null;
+        let rawValue;
+        if(g.luaTableHint&&apoFlat[g.luaTableHint+'.'+key]!==undefined){
+          luaTable=g.luaTableHint;
+          rawValue=apoFlat[g.luaTableHint+'.'+key];
+        } else {
+          luaTable=luaTableOf[key]||null;
+          rawValue=luaTable?apoFlat[luaTable+'.'+key]:apoFlat[key];
+        }
+
+        if(rawValue===undefined&&!annotations[key]) continue;
+
+        const sbKey=sandboxKeyMap[key]||key;
+        const type=detectType(key,rawValue||'',sbKey,sbJson,annotations);
+
+        let options=[];
+        if(type==='enum') options=annotations[key]?.options||getEnumOptions(sbKey,sbJson);
+        else if(type==='lootSelect') options=LOOT_SNAPS;
+
+        let def=rawValue!==undefined?parseFloat(rawValue):0;
+        if(isNaN(def)) def=rawValue==='true'?1:0;
+        if(annotations[key]?.def!==undefined) def=annotations[key].def;
+
+        group.settings.push({
+          key,fid:'sandbox',luaTable,
+          label:sbJson['Sandbox_'+sbKey]||sbJson['Sandbox_'+key]||humanize(key),
+          type,options,def,b42:g.b42||false,
+          tooltip:sbJson['Sandbox_'+sbKey+'_tooltip']||sbJson['Sandbox_'+key+'_tooltip']||'',
+        });
+      }
+      sbFile.groups.push(group);
+    }
+    schema.push(sbFile);
+  }
+
+  return schema;
+}
+
 // ─── RENDER ───────────────────────────────────────────────────────────
+function updateAvg(s,fid,aid){
+  const ae=document.getElementById(aid);
+  if(ae) ae.textContent=fmtDisplay(s,avg3(s,values[0][fid][s.key],values[1][fid][s.key],values[2][fid][s.key]));
+}
+
+function makeControl(s,cv,p){
+  const aid='avg_'+s.fid+'_'+s.key;
+  const id='ctl_'+p+'_'+s.fid+'_'+s.key;
+
+  if(s.type==='bool'){
+    const chk=document.createElement('input');
+    chk.type='checkbox';chk.checked=cv>=0.5;chk.id=id;chk.className='p-check';
+    chk.onchange=()=>{values[p][s.fid][s.key]=chk.checked?1:0;updateAvg(s,s.fid,aid);document.getElementById('preset'+p).value='custom';};
+    return chk;
+  }
+
+  if(s.type==='enum'||s.type==='lootSelect'){
+    const sel=document.createElement('select');
+    sel.id=id;sel.className='p-select';
+    if(s.type==='enum'){
+      s.options.forEach((label,i)=>{const o=document.createElement('option');o.value=String(i+1);o.textContent=label;sel.appendChild(o);});
+      sel.value=String(Math.round(cv));
+    } else {
+      s.options.forEach(([v,label])=>{const o=document.createElement('option');o.value=String(v);o.textContent=label;sel.appendChild(o);});
+      sel.value=String(nearestLootSnap(cv));
+    }
+    sel.onchange=()=>{values[p][s.fid][s.key]=parseFloat(sel.value);updateAvg(s,s.fid,aid);document.getElementById('preset'+p).value='custom';};
+    return sel;
+  }
+
+  const inp=document.createElement('input');
+  inp.type='number';inp.step='any';inp.value=cv;inp.id=id;inp.className='p-num';
+  inp.oninput=()=>{const v=parseFloat(inp.value);if(!isNaN(v)){values[p][s.fid][s.key]=v;updateAvg(s,s.fid,aid);document.getElementById('preset'+p).value='custom';}};
+  return inp;
+}
+
 function buildTree(){
   const tree=document.getElementById('tree');tree.innerHTML='';
   for(const f of SCHEMA){
@@ -786,8 +585,7 @@ function buildTree(){
       const gDiv=document.createElement('div');
       const gRow=document.createElement('div');gRow.className='t-row';
       const gIco=document.createElement('span');gIco.className='t-icon';gIco.id='ico_'+gk;gIco.textContent=collapsed[gk]?'▶':'▼';
-      const gLbl=document.createElement('span');gLbl.className='lbl-group';
-      gLbl.textContent=g.label;
+      const gLbl=document.createElement('span');gLbl.className='lbl-group';gLbl.textContent=g.label;
       if(g.b42){const t=document.createElement('span');t.className='b42-tag';t.textContent='B42';gLbl.appendChild(t);}
       gRow.append(mkI(),mkI(),gIco,gLbl);
       const gCh=document.createElement('div');gCh.id='gch_'+gk;gCh.className='t-children'+(collapsed[gk]?' collapsed':'');
@@ -798,13 +596,12 @@ function buildTree(){
         const sRow=document.createElement('div');sRow.className='s-row';
         const sIco=document.createElement('span');sIco.className='t-icon';sIco.textContent='·';
         const sKey=document.createElement('span');sKey.className='s-key'+(s.b42?' b42':'');
-        sKey.textContent=s.key;
-        sKey.title=(s.b42?'[B42] ':'')+s.label+' ('+s.min+' – '+s.max+')';
+        sKey.textContent=s.key;sKey.title=(s.b42?'[B42] ':'')+s.label;
         sRow.append(mkI(),mkI(),mkI(),sIco,sKey);
-        if(DESCS[s.key]){
+        if(s.tooltip){
           const iw=document.createElement('span');iw.className='info-wrap';
           const ib=document.createElement('button');ib.className='info-btn';ib.textContent='ℹ';ib.type='button';
-          const it=document.createElement('div');it.className='info-tip';it.textContent=DESCS[s.key];
+          const it=document.createElement('div');it.className='info-tip';it.textContent=s.tooltip;
           iw.append(ib,it);sRow.appendChild(iw);
         }
         const wrap=document.createElement('div');wrap.className='sliders-wrap';
@@ -812,16 +609,8 @@ function buildTree(){
         for(let p=0;p<3;p++){
           const cv=values[p][f.id][s.key]??s.def;
           const col=document.createElement('div');col.className='p-col';
-          const vs=document.createElement('span');vs.className='p-val';vs.id='val_'+p+'_'+f.id+'_'+s.key;vs.textContent=fmtDisplay(s,cv);
-          const rng=document.createElement('input');rng.type='range';rng.min=s.min;rng.max=s.max;rng.step=s.step;rng.value=cv;
-          rng.id='rng_'+p+'_'+f.id+'_'+s.key;rng.dataset.pcol=String(p);fillGrad(rng);
-          rng.oninput=()=>{
-            const v=parseFloat(rng.value);values[p][f.id][s.key]=v;vs.textContent=fmtDisplay(s,v);fillGrad(rng);
-            const ae=document.getElementById(aid);
-            if(ae){ae.textContent=fmtDisplay(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]));}
-            document.getElementById('preset'+p).value='custom';
-          };
-          col.append(vs,rng);wrap.appendChild(col);
+          col.appendChild(makeControl(s,cv,p));
+          wrap.appendChild(col);
         }
         const avgSp=document.createElement('span');avgSp.className='s-avg';avgSp.id=aid;
         avgSp.textContent=fmtDisplay(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]));
@@ -833,27 +622,28 @@ function buildTree(){
   }
 }
 
-function rebuildSliders(){
-  for(const f of SCHEMA) for(const g of f.groups) for(const s of g.settings) for(let p=0;p<3;p++){
-    const rng=document.getElementById('rng_'+p+'_'+f.id+'_'+s.key);
-    const vs=document.getElementById('val_'+p+'_'+f.id+'_'+s.key);
-    const ae=document.getElementById('avg_'+f.id+'_'+s.key);
-    const v=values[p][f.id][s.key]??s.def;
-    if(rng){rng.value=v;fillGrad(rng);}
-    if(vs) vs.textContent=fmtDisplay(s,v);
-    if(p===2&&ae) ae.textContent=fmtDisplay(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]));
+function rebuildControls(){
+  for(const f of SCHEMA) for(const g of f.groups) for(const s of g.settings){
+    const aid='avg_'+f.id+'_'+s.key;
+    for(let p=0;p<3;p++){
+      const v=values[p][f.id][s.key]??s.def;
+      const ctl=document.getElementById('ctl_'+p+'_'+f.id+'_'+s.key);
+      if(!ctl) continue;
+      if(s.type==='bool') ctl.checked=v>=0.5;
+      else if(s.type==='lootSelect') ctl.value=String(nearestLootSnap(v));
+      else if(s.type==='enum') ctl.value=String(Math.round(v));
+      else ctl.value=String(v);
+    }
+    const ae=document.getElementById(aid);
+    if(ae) ae.textContent=fmtDisplay(s,avg3(s,values[0][f.id][s.key],values[1][f.id][s.key],values[2][f.id][s.key]));
   }
 }
 
 function tog(k,ch,ico){collapsed[k]=!collapsed[k];ico.textContent=collapsed[k]?'▶':'▼';ch.classList.toggle('collapsed',collapsed[k]);}
 
 // ─── EVENTS ───────────────────────────────────────────────────────────
-// Settings panel toggle
-document.getElementById('btn-settings').onclick=()=>{
-  document.getElementById('settings-panel').classList.toggle('open');
-};
+document.getElementById('btn-settings').onclick=()=>{document.getElementById('settings-panel').classList.toggle('open');};
 
-// Token — load from localStorage, persist on change
 (()=>{
   const tf=document.getElementById('gh-token');
   const stored=localStorage.getItem('pz-gh-token');
@@ -874,8 +664,7 @@ document.getElementById('btn-save').onclick=commitAll;
   document.getElementById('btn-reload-'+i).onclick=()=>reloadPlayer(i);
 });
 
-buildTree();
-loadAllFromGitHub();
+loadGameFiles();
 </script>
 </body>
 </html>

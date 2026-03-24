@@ -1,0 +1,125 @@
+{
+  "sandboxKeyMap": {
+    "Zombies":        "ZombieCount",
+    "Distribution":   "ZombieDistribution",
+    "Speed":          "ZSpeed",
+    "Strength":       "ZStrength",
+    "Toughness":      "ZToughness",
+    "Transmission":   "ZTransmission",
+    "Mortality":      "ZInfectionMortality",
+    "Reanimate":      "ZReanimateTime",
+    "Cognition":      "ZCognition",
+    "Memory":         "ZMemory",
+    "Sight":          "ZSight",
+    "Hearing":        "ZHearing",
+    "SpawnFrequency": "BasementSpawnFrequency"
+  },
+  "annotations": {
+    "UndergroundDarkness": {
+      "type": "enum", "def": 2,
+      "options": ["Pitch Black", "Dark", "Normal"]
+    },
+    "CraftingYieldMultiplier": { "type": "number", "def": 1.0 },
+    "OreSpawnMultiplier":      { "type": "number", "def": 1.0 },
+    "BlacksmithingEnabled":    { "type": "bool",   "def": 1 },
+    "PotteryEnabled":          { "type": "bool",   "def": 1 }
+  },
+  "ini": {
+    "groups": [
+      {
+        "id": "pvp", "label": "PVP & Safety",
+        "settings": [
+          { "key": "PVP",          "label": "PvP enabled",    "type": "bool",   "def": 1 },
+          { "key": "SafetySystem", "label": "Safety system",  "type": "bool",   "def": 1 }
+        ]
+      },
+      {
+        "id": "sleep", "label": "Sleep",
+        "settings": [
+          { "key": "SleepAllowed", "label": "Sleep allowed", "type": "bool", "def": 0 },
+          { "key": "SleepNeeded",  "label": "Sleep needed",  "type": "bool", "def": 0 }
+        ]
+      },
+      {
+        "id": "safe", "label": "Safehouses",
+        "settings": [
+          { "key": "PlayerSafehouse",           "label": "Player safehouses", "type": "bool",   "def": 0 },
+          { "key": "SafehouseDaySurvivedToClaim","label": "Days to claim",     "type": "number", "def": 3 }
+        ]
+      },
+      {
+        "id": "srv", "label": "Server",
+        "settings": [
+          { "key": "MaxPlayers",          "label": "Max players",              "type": "number", "def": 32 },
+          { "key": "PauseEmpty",          "label": "Pause when empty",         "type": "bool",   "def": 1 },
+          { "key": "HoursForLootRespawn", "label": "Loot respawn hrs (0=off)", "type": "number", "def": 0 }
+        ]
+      }
+    ]
+  },
+  "sandbox": {
+    "groups": [
+      {
+        "id": "world", "label": "World Timeline",
+        "keys": ["DayLength","StartMonth","StartDay","StartTime","WaterShut","ElecShut","WaterShutModifier","ElecShutModifier"]
+      },
+      {
+        "id": "zpop", "label": "Zombie Population",
+        "keys": ["Zombies","Distribution","PopulationMultiplier","PopulationStartMultiplier","PopulationPeakMultiplier","PopulationPeakDay"]
+      },
+      {
+        "id": "zlore", "label": "Zombie Lore",
+        "luaTableHint": "ZombieLore",
+        "keys": ["Speed","Strength","Toughness","Transmission","Mortality","Reanimate","Cognition","Memory","Sight","Hearing","ThumpNoChasing","ThumpOnConstruction","ActiveOnly","ZombiesDragDown","ZombiesFenceLunge","DisableFakeDead"]
+      },
+      {
+        "id": "zrespawn", "label": "Zombie Respawn",
+        "keys": ["RespawnHours","RespawnUnseenHours","RespawnMultiplier"]
+      },
+      {
+        "id": "loot", "label": "Loot Rarity",
+        "keys": ["FoodLootNew","CannedFoodLootNew","SkillBookLoot","RecipeResourceLoot","LiteratureLootNew","SurvivalGearsLootNew","MedicalLootNew","WeaponLootNew","RangedWeaponLootNew","AmmoLootNew","MechanicsLootNew","ClothingLootNew","ContainerLootNew","KeyLootNew","MediaLootNew","MementoLootNew","CookwareLootNew","MaterialLootNew","FarmingLootNew","ToolLootNew","OtherLootNew"]
+      },
+      {
+        "id": "char", "label": "Character & Survival",
+        "keys": ["Global","StatsDecrease","EndRegen","InjurySeverity","BoneFracture","CharacterFreePoints","MultiHitZombies","RearVulnerability","AttackBlockMovements"]
+      },
+      {
+        "id": "env", "label": "Environment",
+        "keys": ["Temperature","Rain","NightDarkness","NightLength","ErosionSpeed","TimeSinceApo"]
+      },
+      {
+        "id": "farming", "label": "Farming & Nature",
+        "keys": ["Farming","NatureAbundance","PlantResilience","PlantAbundance","FoodRotSpeed","FridgeFactor","FishAbundance"]
+      },
+      {
+        "id": "meta", "label": "Meta Events",
+        "keys": ["Helicopter","MetaEvent","GeneratorSpawning","SurvivorHouseChance","AnnotatedMapChance","Alarm","LockedHouses"]
+      },
+      {
+        "id": "vehicles", "label": "Vehicles",
+        "keys": ["CarSpawnRate","ChanceHasGas","InitialGas","FuelStationGasMin","FuelStationGasMax","CarGasConsumption","CarGeneralCondition","LockedCar","CarAlarm","TrafficJam"]
+      },
+      {
+        "id": "corpses", "label": "Corpses & Blood",
+        "keys": ["HoursForCorpseRemoval","DecayingCorpseHealthImpact","BloodLevel","ClothingDegradation"]
+      },
+      {
+        "id": "misc", "label": "Misc & Display",
+        "keys": ["StarterKit","AllowMiniMap","AllowWorldMap","MapAllKnown","Nutrition","EnablePoisoning","GeneratorFuelConsumption","LightBulbLifespan","AllowExteriorGenerator","ConstructionBonusPoints"]
+      },
+      {
+        "id": "b42animals", "label": "Animals & Livestock", "b42": true,
+        "keys": ["AnimalStatsModifier","AnimalRanchChance","AnimalMatingSeason","AnimalMetaPredator","AnimalSoundAttractZombies"]
+      },
+      {
+        "id": "b42craft", "label": "Crafting & Resources", "b42": true,
+        "keys": ["CraftingYieldMultiplier","OreSpawnMultiplier","BlacksmithingEnabled","PotteryEnabled"]
+      },
+      {
+        "id": "b42world", "label": "Basements & Darkness", "b42": true,
+        "keys": ["SpawnFrequency","UndergroundDarkness"]
+      }
+    ]
+  }
+}
