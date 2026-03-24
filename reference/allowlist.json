@@ -91,6 +91,52 @@
     "StartDay": {
       "_note": "In-game control is a 1-31 dropdown (confirmed 1_time_2.png). Sandbox.json has no _option* entries. Rendering as number input for usability — a 31-item dropdown is poor UX for voting. Valid range 1–31.",
       "type": "number", "def": 9
+    },
+    "WaterShutModifier": {
+      "_note": "World tab 'Water Shutoff' numeric offset (days). Shows as a raw number input in-game (4_world_1.png, value 14). Distinct from WaterShut which is the distribution enum. Sandbox.json has no entry for this key at all.",
+      "type": "number", "def": 14
+    },
+    "ElecShutModifier": {
+      "_note": "World tab 'Electricity Shutoff' numeric offset (days). Shows as a raw number input in-game (4_world_1.png, value 14). Distinct from ElecShut which is the distribution enum. Sandbox.json has no entry for this key at all.",
+      "type": "number", "def": 14
+    },
+    "PopulationPeakDay": {
+      "_note": "Zombie 'Population Peak Day'. Number input in-game (2_zombie_2.png, value 28). The day on which zombie population reaches peak. Sandbox.json has a title entry but no _option* entries.",
+      "type": "number", "def": 28
+    },
+    "CharacterFreePoints": {
+      "_note": "Character 'Free Trait Points'. Number input in-game (7_character_1.png, value 0). Sandbox.json has a title entry but no _option* entries.",
+      "type": "number", "def": 0
+    },
+    "Farming": {
+      "_note": "Nature tab 'Farming Speed' (Sandbox.json title: Agriculture Multiplier). Shows as 1.0 in-game (5_nature_1.png) — float number input, not a dropdown. No Sandbox.json _option* entries.",
+      "type": "number", "def": 1.0
+    },
+    "PlantAbundance": {
+      "_note": "Nature tab 'Farming Abundance'. Shows as 1.0 in-game (5_nature_1.png) — float number input, not a dropdown. No Sandbox.json _option* entries.",
+      "type": "number", "def": 1.0
+    },
+    "PopulationMultiplier": {
+      "_note": "Zombie advanced 'Population Multiplier'. Dropdown in-game (2_zombie_2.png, value 'Normal'). No Sandbox.json _option* entries. Options unverified — need dropdown opened in-game.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Very Low", "Low", "Normal", "High", "Very High"]
+    },
+    "PopulationStartMultiplier": {
+      "_note": "Zombie advanced 'Population Start Multiplier'. Dropdown in-game (2_zombie_2.png, value 'Normal'). No Sandbox.json _option* entries. Options assumed same scale as PopulationMultiplier — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Very Low", "Low", "Normal", "High", "Very High"]
+    },
+    "PopulationPeakMultiplier": {
+      "_note": "Zombie advanced 'Population Peak Multiplier'. Dropdown in-game (2_zombie_2.png, value 'High'). No Sandbox.json _option* entries. Options assumed same scale — def=4 means 'High' if options are [Very Low,Low,Normal,High,Very High] — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Very Low", "Low", "Normal", "High", "Very High"]
+    },
+    "RespawnHours": {
+      "_note": "Zombie respawn. 2_zombie_2.png shows 'Respawn Hours: 0.0' as a number in advanced settings. BUT 2_zombie_1.png shows 'Zombie Respawn: None' as a dropdown — unclear if these are the same control or two separate keys. Treating as number until confirmed. def=0 = no respawn (Apocalypse preset).",
+      "type": "number", "def": 0
     }
   },
 
