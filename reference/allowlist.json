@@ -1,5 +1,8 @@
 {
+  "_note": "This file is the only hand-curated config for pz-vote. Everything else (labels, enum options, defaults, nested Lua table paths) is derived at runtime from game files in reference/game_files/. This file exists for four reasons: (1) curation — only ~90 of ~180+ sandbox keys are shown; (2) Sandbox.json name mismatches — the Lua preset keys don't always match the Sandbox_<Key> pattern; (3) ini settings — server.ini fields have no game-file source; (4) B42-new keys — a few keys added in B42 are absent from Apocalypse.lua and need explicit type/default here.",
+
   "sandboxKeyMap": {
+    "_note": "Maps Lua preset key names → Sandbox.json lookup key (without the 'Sandbox_' prefix). Needed because some Lua keys don't match the Sandbox_<LuaKey> convention. Rule: for a key 'Foo' in a .lua preset, the tool looks up 'Sandbox_Foo' in Sandbox.json. These overrides redirect that lookup. ZombieLore keys all have a 'Z' prefix in Sandbox.json (Speed → ZSpeed, etc.). Population keys use longer names (Zombies → ZombieCount). Basement key lives under a nested table but looks up via BasementSpawnFrequency.",
     "Zombies":        "ZombieCount",
     "Distribution":   "ZombieDistribution",
     "Speed":          "ZSpeed",
@@ -14,20 +17,38 @@
     "Hearing":        "ZHearing",
     "SpawnFrequency": "BasementSpawnFrequency"
   },
+
   "annotations": {
+    "_note": "Explicit type/default overrides for keys that are missing from Apocalypse.lua (B42-new) or whose type can't be reliably detected. Without these, detectType() would fall through to 'number'. Keys here appear in the sandbox groups below — the annotation is looked up by Lua key name.",
     "UndergroundDarkness": {
+      "_note": "B42 basement darkness setting. Enum with 3 named levels. Not present in any preset .lua file, so there's no Apocalypse.lua value to derive a default from. Options are inferred from in-game observation — verify against Sandbox.json if options change.",
       "type": "enum", "def": 2,
       "options": ["Pitch Black", "Dark", "Normal"]
     },
-    "CraftingYieldMultiplier": { "type": "number", "def": 1.0 },
-    "OreSpawnMultiplier":      { "type": "number", "def": 1.0 },
-    "BlacksmithingEnabled":    { "type": "bool",   "def": 1 },
-    "PotteryEnabled":          { "type": "bool",   "def": 1 }
+    "CraftingYieldMultiplier": {
+      "_note": "B42 crafting multiplier. Float, defaults to 1.0. Present in B42 Sandbox.json but absent from Apocalypse.lua — no Apocalypse default to fall back on.",
+      "type": "number", "def": 1.0
+    },
+    "OreSpawnMultiplier": {
+      "_note": "B42 mining/ore spawn rate. Float, defaults to 1.0. Same situation as CraftingYieldMultiplier.",
+      "type": "number", "def": 1.0
+    },
+    "BlacksmithingEnabled": {
+      "_note": "B42 blacksmithing toggle. Bool (0/1). Absent from Apocalypse.lua. Default 1 = enabled.",
+      "type": "bool", "def": 1
+    },
+    "PotteryEnabled": {
+      "_note": "B42 pottery toggle. Bool (0/1). Absent from Apocalypse.lua. Default 1 = enabled.",
+      "type": "bool", "def": 1
+    }
   },
+
   "ini": {
+    "_note": "Server.ini settings. These are multiplayer server config values written to the server's .ini file — NOT part of SandboxVars.lua. They have no game-file source, so type/label/default must be fully defined here. The tool writes these to a separate ini section of its output. These are the settings players on a server vote about that aren't sandbox settings.",
     "groups": [
       {
         "id": "pvp", "label": "PVP & Safety",
+        "_note": "Core PvP toggles. PVP=1 means player-vs-player damage is on. SafetySystem gives players a toggle to flag themselves as non-hostile.",
         "settings": [
           { "key": "PVP",          "label": "PvP enabled",    "type": "bool",   "def": 1 },
           { "key": "SafetySystem", "label": "Safety system",  "type": "bool",   "def": 1 }
@@ -35,6 +56,7 @@
       },
       {
         "id": "sleep", "label": "Sleep",
+        "_note": "Multiplayer sleep is off by default — sleeping in MP is complex because all players must sleep simultaneously for time to pass. SleepAllowed lets players attempt it; SleepNeeded makes fatigue actually require sleeping.",
         "settings": [
           { "key": "SleepAllowed", "label": "Sleep allowed", "type": "bool", "def": 0 },
           { "key": "SleepNeeded",  "label": "Sleep needed",  "type": "bool", "def": 0 }
@@ -42,13 +64,15 @@
       },
       {
         "id": "safe", "label": "Safehouses",
+        "_note": "Safehouses let players claim a building as protected. Off by default. The days-to-claim gate prevents claiming on day 1.",
         "settings": [
-          { "key": "PlayerSafehouse",           "label": "Player safehouses", "type": "bool",   "def": 0 },
-          { "key": "SafehouseDaySurvivedToClaim","label": "Days to claim",     "type": "number", "def": 3 }
+          { "key": "PlayerSafehouse",            "label": "Player safehouses", "type": "bool",   "def": 0 },
+          { "key": "SafehouseDaySurvivedToClaim", "label": "Days to claim",    "type": "number", "def": 3 }
         ]
       },
       {
         "id": "srv", "label": "Server",
+        "_note": "Core server parameters. HoursForLootRespawn=0 means loot never respawns — appropriate for a hardcore/persistent server. This is distinct from the sandbox loot settings.",
         "settings": [
           { "key": "MaxPlayers",          "label": "Max players",              "type": "number", "def": 32 },
           { "key": "PauseEmpty",          "label": "Pause when empty",         "type": "bool",   "def": 1 },
@@ -57,67 +81,84 @@
       }
     ]
   },
+
   "sandbox": {
+    "_note": "Sandbox setting groups. Each group lists Lua key names to include. Defaults, labels, and enum options are looked up from Sandbox.json + Apocalypse.lua at runtime — only exceptions (sandboxKeyMap, annotations) need to be listed above. Keys not listed here are silently excluded from the UI. Groups marked b42:true are hidden unless the user enables B42 mode.",
     "groups": [
       {
         "id": "world", "label": "World Timeline",
+        "_note": "Time-related world settings. Corresponds to the 'Time' tab in-game (tab 1). WaterShutModifier/ElecShutModifier are the specific day offsets; WaterShut/ElecShut are the distribution (e.g. 'within X days' enum). These 4 together control when utilities shut off.",
         "keys": ["DayLength","StartMonth","StartDay","StartTime","WaterShut","ElecShut","WaterShutModifier","ElecShutModifier"]
       },
       {
         "id": "zpop", "label": "Zombie Population",
+        "_note": "Zombie count and distribution. Corresponds to the top of the 'Zombie' tab (tab 2). These keys live under ZombieConfig in the Lua output — sandboxKeyMap handles the Zombies/Distribution name mismatches. PopulationMultiplier and friends are float multipliers on the base count.",
         "keys": ["Zombies","Distribution","PopulationMultiplier","PopulationStartMultiplier","PopulationPeakMultiplier","PopulationPeakDay"]
       },
       {
         "id": "zlore", "label": "Zombie Lore",
+        "_note": "Zombie behavior/attributes. Corresponds to the middle of the 'Zombie' tab. IMPORTANT: luaTableHint is required here because 'Strength' appears in BOTH ZombieLore AND MultiplierConfig in the preset files. Without the hint, buildSchema would use the MultiplierConfig value (last-wins in the parse loop). The hint forces lookup of ZombieLore.Strength specifically. All sandboxKeyMap entries in this group (Speed, Strength, etc.) have Z-prefixed Sandbox.json lookup keys.",
         "luaTableHint": "ZombieLore",
         "keys": ["Speed","Strength","Toughness","Transmission","Mortality","Reanimate","Cognition","Memory","Sight","Hearing","ThumpNoChasing","ThumpOnConstruction","ActiveOnly","ZombiesDragDown","ZombiesFenceLunge","DisableFakeDead"]
       },
       {
         "id": "zrespawn", "label": "Zombie Respawn",
+        "_note": "Controls whether and how fast zombies respawn. These are under ZombieConfig in the Lua output. RespawnHours=0 means no respawn. Kept separate from zpop because they're shown in a different section of the Zombie tab.",
         "keys": ["RespawnHours","RespawnUnseenHours","RespawnMultiplier"]
       },
       {
         "id": "loot", "label": "Loot Rarity",
+        "_note": "All loot category rarity multipliers. Corresponds to the 'Loot' tab in-game (tab 3). These are float values in the preset files but the tool renders them as named dropdowns (Insane Rare → Abundant) snapped to the 6 factor values from Apocalypse.lua. SkillBookLoot and RecipeResourceLoot intentionally use the old key names — their Sandbox.json entries don't follow the *LootNew pattern.",
         "keys": ["FoodLootNew","CannedFoodLootNew","SkillBookLoot","RecipeResourceLoot","LiteratureLootNew","SurvivalGearsLootNew","MedicalLootNew","WeaponLootNew","RangedWeaponLootNew","AmmoLootNew","MechanicsLootNew","ClothingLootNew","ContainerLootNew","KeyLootNew","MediaLootNew","MementoLootNew","CookwareLootNew","MaterialLootNew","FarmingLootNew","ToolLootNew","OtherLootNew"]
       },
       {
         "id": "char", "label": "Character & Survival",
+        "_note": "Character difficulty and combat settings. Corresponds to the 'Character' tab (tab 7). 'Global' is the XP multiplier (under MultiplierConfig in Lua). CharacterFreePoints is the free skill points at character creation.",
         "keys": ["Global","StatsDecrease","EndRegen","InjurySeverity","BoneFracture","CharacterFreePoints","MultiHitZombies","RearVulnerability","AttackBlockMovements"]
       },
       {
         "id": "env", "label": "Environment",
+        "_note": "Climate and world-age settings. Corresponds to parts of the 'World' tab (tab 4). TimeSinceApo controls how long the apocalypse has been going — affects world erosion state at game start.",
         "keys": ["Temperature","Rain","NightDarkness","NightLength","ErosionSpeed","TimeSinceApo"]
       },
       {
         "id": "farming", "label": "Farming & Nature",
+        "_note": "Farming productivity and nature abundance. Corresponds to the 'Nature' tab (tab 5). FoodRotSpeed and FridgeFactor affect how long food lasts — kept here (not with loot) because they're shown in the Nature tab in-game.",
         "keys": ["Farming","NatureAbundance","PlantResilience","PlantAbundance","FoodRotSpeed","FridgeFactor","FishAbundance"]
       },
       {
         "id": "meta", "label": "Meta Events",
+        "_note": "Random events and world encounter settings. Corresponds to the 'Meta' tab (tab 6). Helicopter events, radio broadcasts, generator spawning, annotated map chance, house alarms, and locked house frequency.",
         "keys": ["Helicopter","MetaEvent","GeneratorSpawning","SurvivorHouseChance","AnnotatedMapChance","Alarm","LockedHouses"]
       },
       {
         "id": "vehicles", "label": "Vehicles",
+        "_note": "Vehicle spawning and condition settings. Corresponds to the 'Vehicles' tab (tab 8). FuelStationGasMin/Max are floats (0.0–1.0 proportion). CarGasConsumption is a multiplier. TrafficJam is a bool that spawns abandoned car pileups.",
         "keys": ["CarSpawnRate","ChanceHasGas","InitialGas","FuelStationGasMin","FuelStationGasMax","CarGasConsumption","CarGeneralCondition","LockedCar","CarAlarm","TrafficJam"]
       },
       {
         "id": "corpses", "label": "Corpses & Blood",
+        "_note": "Body persistence and visual gore settings. HoursForCorpseRemoval=0 means corpses never auto-remove. DecayingCorpseHealthImpact affects the sickness hazard from nearby rotting bodies.",
         "keys": ["HoursForCorpseRemoval","DecayingCorpseHealthImpact","BloodLevel","ClothingDegradation"]
       },
       {
         "id": "misc", "label": "Misc & Display",
+        "_note": "Miscellaneous settings that don't fit other categories. AllowMiniMap/AllowWorldMap/MapAllKnown are under the Map nested table in Lua output. StarterKit gives new characters a basic item loadout. Nutrition enables the macro-tracking system.",
         "keys": ["StarterKit","AllowMiniMap","AllowWorldMap","MapAllKnown","Nutrition","EnablePoisoning","GeneratorFuelConsumption","LightBulbLifespan","AllowExteriorGenerator","ConstructionBonusPoints"]
       },
       {
         "id": "b42animals", "label": "Animals & Livestock", "b42": true,
+        "_note": "B42-new animal husbandry settings. Corresponds to the 'Livestock' tab (tab 9, B42 only). AnimalStatsModifier affects animal health/stats; AnimalRanchChance is how often a ranch spawns with animals. These keys exist in B42 Sandbox.json but may not be in older preset files — verify Sandbox.json key names if these show wrong values.",
         "keys": ["AnimalStatsModifier","AnimalRanchChance","AnimalMatingSeason","AnimalMetaPredator","AnimalSoundAttractZombies"]
       },
       {
         "id": "b42craft", "label": "Crafting & Resources", "b42": true,
+        "_note": "B42-new crafting/resource settings. These 4 keys are absent from Apocalypse.lua (B42-only), so their type and default come entirely from the annotations block above rather than game files.",
         "keys": ["CraftingYieldMultiplier","OreSpawnMultiplier","BlacksmithingEnabled","PotteryEnabled"]
       },
       {
         "id": "b42world", "label": "Basements & Darkness", "b42": true,
+        "_note": "B42 basement-related settings. SpawnFrequency is under the Basement nested table in the Lua output — its sandboxKeyMap entry redirects the Sandbox.json lookup to BasementSpawnFrequency. UndergroundDarkness has no Apocalypse.lua entry, so it's fully defined in annotations.",
         "keys": ["SpawnFrequency","UndergroundDarkness"]
       }
     ]
