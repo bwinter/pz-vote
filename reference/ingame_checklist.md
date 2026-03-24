@@ -1,13 +1,23 @@
 # In-game verification checklist
 
-Settings that need eyes on the actual PZ menu. Do in one pass.
+Settings that still need eyes on the actual PZ menu.
 
 ## Livestock tab (tab 9)
 
-- [ ] **Stats Reduction Speed** (`AnimalStatsModifier`) — open dropdown, note all option labels in order. Currently showing "Ultra Fast → Very Slow" (borrowed from AnimalSpeed scale, wording likely wrong).
-- [ ] **Animal Spawn Chance** (`AnimalRanchChance`) — confirm dropdown matches: Never / Extremely Rare / Rare / Sometimes / Often / Very Often / Always.
-- [ ] **Meta Stats Reduction Speed** (`AnimalMetaStatsModifier`) — note whether it's a dropdown or number. Key exists in Sandbox.json but is not in the allowlist yet. If it's a meaningful player-facing setting, add it to the `b42animals` group.
+Open each dropdown and note all option labels in order.
+Several are annotated with provisional labels flagged `_unverified: true` in `allowlist.json`.
 
-## Time tab (tab 1)
+- [ ] **Pregnancy Time** (`AnimalPregnancyTime`) — provisional: Ultra Fast / Very Fast / Fast / Normal / Slow / Very Slow
+- [ ] **Egg Hatch Time** (`AnimalEggHatch`) — provisional: same 6-slot scale
+- [ ] **Aging Modifier Speed** (`AnimalAgeModifier`) — Sandbox.json has 3 options (Very Fast / Fast / Normal) but Apocalypse default is 4 (out of range). Confirm actual options and which index is "Normal".
+- [ ] **Milk Increase Speed** (`AnimalMilkIncModifier`) — provisional: same 6-slot scale
+- [ ] **Wool Increase Speed** (`AnimalWoolIncModifier`) — provisional: same 6-slot scale
+- [ ] **Animal Tracks Chance** (`AnimalTrackChance`) — provisional: Never / Extremely Rare / Rare / Sometimes / Often / Very Often / Always
+- [ ] **Animal Paths Chance** (`AnimalPathChance`) — provisional: same 7-slot scale
 
-- [ ] **Start Day** (`StartDay`) — dropdown or number input (1–31)? Sandbox.json has no enum options, currently renders as number.
+## Previously resolved
+
+- [x] **Stats Reduction Speed** (`AnimalStatsModifier`) — confirmed Ultra Fast→Very Slow (9_livestock_3.png)
+- [x] **Animal Spawn Chance** (`AnimalRanchChance`) — confirmed Never→Always (9_livestock_2.png)
+- [x] **Meta Stats Reduction Speed** (`AnimalMetaStatsModifier`) — NOT in UI, excluded
+- [x] **Start Day** (`StartDay`) — confirmed 1-31 dropdown (1_time_2.png); rendered as number input for UX

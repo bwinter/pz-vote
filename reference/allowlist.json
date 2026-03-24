@@ -44,10 +44,53 @@
       "type": "bool", "def": 1
     },
     "AnimalStatsModifier": {
-      "_note": "Livestock 'Stats Reduction Speed' — dropdown in-game (9_livestock_1.png shows value 'Normal'). Sandbox.json has no Sandbox_AnimalStatsModifier_option*. Candidate enum: same 6-slot order as Sandbox_AnimalSpeed_option* (Ultra Fast→Very Slow) because presets/schema use indices 1–6 and def 4 matches on-screen 'Normal'. NOT a sandboxKeyMap to AnimalSpeed — those strings are movement-speed wording and may misread for stat decay; this array is explicitly provisional.",
+      "_note": "Livestock 'Stats Reduction Speed'. Sandbox.json has no _option* entries. Options confirmed in-game (9_livestock_3.png): Ultra Fast / Very Fast / Fast / Normal / Slow / Very Slow. Same 6-slot scale as AnimalSpeed — wording is correct for stat decay speed.",
+      "type": "enum", "def": 4,
+      "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "AnimalPregnancyTime": {
+      "_note": "Livestock 'Pregnancy Time'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale as AnimalStatsModifier — unverified, dropdown not opened in screenshots.",
       "_unverified": true,
       "type": "enum", "def": 4,
       "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "AnimalEggHatch": {
+      "_note": "Livestock 'Egg Hatch Time'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "AnimalMilkIncModifier": {
+      "_note": "Livestock 'Milk Increase Speed'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "AnimalWoolIncModifier": {
+      "_note": "Livestock 'Wool Increase Speed'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Normal'). Def=4 in Apocalypse.lua. Options assumed same 6-slot speed scale — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Ultra Fast", "Very Fast", "Fast", "Normal", "Slow", "Very Slow"]
+    },
+    "AnimalGrassRegrowTime": {
+      "_note": "Livestock 'Grass Regrowth time'. Number input in-game (9_livestock_1.png). Def=240 in Apocalypse.lua.",
+      "type": "number", "def": 240
+    },
+    "AnimalTrackChance": {
+      "_note": "Livestock 'Animal Tracks Chance'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Sometimes'). Def=4 in Apocalypse.lua. Options assumed same 7-slot rarity scale as AnimalRanchChance (Never→Always, Sometimes=4) — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often", "Always"]
+    },
+    "AnimalPathChance": {
+      "_note": "Livestock 'Animal Paths Chance'. Sandbox.json has no _option* entries. Shown as dropdown in-game (9_livestock_1.png, value 'Sometimes'). Def=4 in Apocalypse.lua. Options assumed same 7-slot rarity scale as AnimalRanchChance — unverified.",
+      "_unverified": true,
+      "type": "enum", "def": 4,
+      "options": ["Never", "Extremely Rare", "Rare", "Sometimes", "Often", "Very Often", "Always"]
+    },
+    "StartDay": {
+      "_note": "In-game control is a 1-31 dropdown (confirmed 1_time_2.png). Sandbox.json has no _option* entries. Rendering as number input for usability — a 31-item dropdown is poor UX for voting. Valid range 1–31.",
+      "type": "number", "def": 9
     }
   },
 
@@ -156,8 +199,8 @@
       },
       {
         "id": "b42animals", "label": "Animals & Livestock", "b42": true,
-        "_note": "B42-new animal husbandry settings. Corresponds to the 'Livestock' tab (tab 9, B42 only). AnimalRanchChance uses Sandbox.json enum strings. AnimalStatsModifier: see annotations (provisional enum, _unverified — no AnimalStatsModifier_option* in Sandbox.json; do not sandboxKeyMap to AnimalSpeed).",
-        "keys": ["AnimalStatsModifier","AnimalRanchChance","AnimalMatingSeason","AnimalMetaPredator","AnimalSoundAttractZombies"]
+        "_note": "B42 animal husbandry settings. Full field inventory from 9_livestock_1.png. AnimalRanchChance + AnimalAgeModifier have Sandbox.json enum strings. AnimalStatsModifier confirmed in-game (9_livestock_3.png). Most other dropdowns lack Sandbox_*_option* entries — see annotations for provisional enums flagged _unverified. AnimalMetaStatsModifier exists in Sandbox.json but is NOT shown in the in-game UI — excluded.",
+        "keys": ["AnimalStatsModifier","AnimalPregnancyTime","AnimalEggHatch","AnimalAgeModifier","AnimalMilkIncModifier","AnimalWoolIncModifier","AnimalRanchChance","AnimalGrassRegrowTime","AnimalMetaPredator","AnimalMatingSeason","AnimalSoundAttractZombies","AnimalTrackChance","AnimalPathChance"]
       },
       {
         "id": "b42craft", "label": "Crafting & Resources", "b42": true,
