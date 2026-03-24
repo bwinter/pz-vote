@@ -63,9 +63,9 @@ blood, misc & display, B42 animals, B42 basements.
 | `presets/SixMonthsLater.lua` | Post-apocalypse late-game preset. |
 | `server_ini/` | Matching `.cfg` server.ini preset files — reference for server.ini key names and their valid values. |
 
-### `reference/vote_html_schema_final.md`
+### `reference/schema.md`
 
-Design brief for `index.html` — loot key format (float multipliers), nested Lua table structure, key name corrections, and output format spec. Supersedes all earlier update notes.
+Complete key reference for B42 SandboxVars — all key names, types, defaults, nested table groups, loot float scale, and preset comparison table. Authoritative source for maintaining `index.html`.
 
 ### Key things to know when editing `index.html`
 
