@@ -12,6 +12,9 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 ### 2. ~~StartDay control type unconfirmed~~ RESOLVED
 Confirmed in-game as a 1–31 dropdown. Sandbox.json has no `_option*` entries. Annotation added: `type: number, def: 9` — rendering as number input for usability (31-item dropdown is poor UX for a voting tool).
 
+### 2b. ~~ZombieRespawn missing from zrespawn group~~ FIXED
+`ZombieRespawn` (top-level dropdown: High/Normal/Low/None, Sandbox.json has options) was absent from the allowlist entirely. Added to `zrespawn` group. Distinct from `RespawnHours` which is a separate number field in the advanced section.
+
 ### 3. Browser testing not done
 **Problem:** The full rewrite (dynamic loading, new control types, buildSchema/detectType) has never been opened in a browser. Unknown if it works at all.
 **Steps:**
@@ -40,10 +43,9 @@ Confirmed in-game as a 1–31 dropdown. Sandbox.json has no `_option*` entries. 
 **Problem:** The Rising preset is a survivor-friendly scenario where PVP is likely off (PVP=0). The ini preset values are hardcoded in `index.html` for each preset — verify that Rising's ini section sets PVP=0. If the PRESETS object in index.html uses the same ini defaults for all presets, Rising will incorrectly show PVP=1.
 **Where:** Search `index.html` for `Rising` and check how ini preset values are built in `buildPresetValues()`.
 
-### 6. Several livestock dropdown labels unverified
-**Problem:** `AnimalStatsModifier` confirmed in-game (Ultra Fast→Very Slow, correct). `AnimalMetaStatsModifier` confirmed NOT in UI — excluded. Eight new livestock keys added to `b42animals` group. Of these, `AnimalPregnancyTime`, `AnimalEggHatch`, `AnimalMilkIncModifier`, `AnimalWoolIncModifier`, `AnimalTrackChance`, `AnimalPathChance` have no Sandbox.json `_option*` entries — provisional enums flagged `_unverified: true` in annotations. `AnimalAgeModifier` has Sandbox.json options (Very Fast/Fast/Normal, 3 options) but Apocalypse.lua uses `def: 4` which is out of range — possible data mismatch.
-**Action:** Open each dropdown in-game and confirm labels. `AnimalAgeModifier` default especially needs checking.
-**See:** `reference/ingame_checklist.md`
+### 6. AnimalAgeModifier default index may be wrong
+**Problem:** All livestock dropdowns confirmed in-game and `_unverified` flags cleared. One open question remains: `AnimalAgeModifier` def=4 — on the 6-slot scale [Ultra Fast…Very Slow], index 4 is "Slow", not "Normal". Apocalypse is supposed to be Normal aging. Possible the Apocalypse.lua value is stored differently or the scale is 0-based in some contexts.
+**Action:** Check a live `servertest_SandboxVars.lua` from an Apocalypse server and confirm what value `AnimalAgeModifier` holds. If it's "Normal" the def is fine; if it's "Slow" the def should stay 4 and we accept it as correct.
 
 ### 7. UndergroundDarkness enum options are from memory, not verified
 **Problem:** The options `["Pitch Black", "Dark", "Normal"]` in the annotations were inferred from the screenshot and prior knowledge — not from Sandbox.json. If the game uses different labels or a different order, the dropdown will show wrong text.
