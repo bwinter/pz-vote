@@ -4,23 +4,6 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 
 ---
 
-## Critical / Likely Broken
-
-### 1. Browser testing not done
-**Problem:** The full rewrite (dynamic loading, new control types, buildSchema/detectType) has never been opened in a browser. Unknown if it works at all.
-**Steps:**
-1. `cd /path/to/pz-vote && python3 -m http.server 8080`
-2. Open `http://localhost:8080` in browser
-3. Open DevTools console — check for fetch errors, JS exceptions
-4. Verify each tab renders controls (not blank)
-5. Verify enum dropdowns show correct options (not "1", "2", "3")
-6. Verify loot rarity dropdowns show named labels ("Normal", "Rare", etc.)
-7. Verify bool checkboxes render (not number inputs)
-8. Load the Apocalypse preset and verify values look right
-9. Generate output and verify SandboxVars.lua format is correct (nested tables)
-
----
-
 ## Correctness Issues
 
 ### 2. KeyLootNew default 0.4 snaps to wrong loot label
@@ -40,31 +23,12 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 
 ---
 
-## Missing Settings (Present in game, absent from allowlist)
-
-### 5. XP multipliers (per-skill) not included
-**Problem:** ~30 per-skill XP multipliers (`MultiplierConfig.*`) are omitted from the `char` group. Screenshots `7_character_2.png` and `7_character_3.png` show the full grid.
-**Decision needed:** Add a new `xpmult` group? All are float number inputs.
-
-### 6. Several zombie advanced settings omitted
-**Problem:** `2_zombie_3.png` shows advanced settings including RedistributeHours, FollowSoundDistance, RallyGroupSize, etc. Some are in `zpop`/`zrespawn` but others are missing.
-**Decision needed:** Add a new `zadv` group with ZombieConfig advanced keys?
-
-### 7. Map settings grouping
-**Minor.** Map settings (AllowMiniMap etc.) are in `misc` but the in-game UI has them as a distinct section. Not a bug, just a grouping choice.
-
----
-
 ## UI / Output Issues
 
-### 8. Output format for nested Lua tables needs verification
-**Problem:** The tool writes `SandboxVars.lua` with nested tables (ZombieLore, ZombieConfig, Map, etc.). The exact nesting and key-to-table assignment needs a full end-to-end test against a real PZ server load.
-**Test method:** Generate a SandboxVars.lua, put it in `Saves/Multiplayer/ServerName/`, start the server, confirm it loads without error.
-
-### 9. `detectType` loot false-positive risk
+### 5. `detectType` loot false-positive risk
 **Problem:** `detectType()` identifies loot keys via `key.includes('Loot') && !key.includes('Respawn') && !key.includes('Hours')`. Works now but could misfire on future keys. Low risk, noted for maintenance.
 
-### 10. Number inputs have no validation or bounds
+### 6. Number inputs have no validation or bounds
 **Problem:** `<input type="number">` accepts any value. Natural bounds exist but aren't communicated:
 - `MaxPlayers`: should be > 0
 - `HoursForCorpseRemoval`: 0 = never, negative invalid
@@ -75,7 +39,7 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 
 ## Documentation / Reference Gaps
 
-### 11. No mapping documented for Lua table nesting
+### 7. No mapping documented for Lua table nesting
 **Problem:** The tool infers which keys go into ZombieLore, ZombieConfig, MultiplierConfig, Map, Basement vs. root from `luaTableOf` in `buildSchema()`. If inference is wrong, keys end up in the wrong table.
 **Recommendation:** Add a table to `reference/schema.md` documenting the key-to-table mapping.
 
@@ -83,19 +47,20 @@ Known gaps, validation items, and open questions. Ordered roughly by impact.
 
 ## Future Features
 
-### 12. Vote tallying / real-time voting UI
+### 8. Vote tallying / real-time voting UI
 The tool currently only builds a config file. Future work: player-facing vote form, tally display, server admin review/apply flow.
 
-### 13. Config diff view
+### 9. Config diff view
 When loading a saved config or preset, show what changed from a baseline. Helpful for admins reviewing vote results.
 
-### 14. Direct server config push
+### 10. Direct server config push
 If the server has RCON or a file API, push the generated SandboxVars.lua directly rather than requiring manual copy.
 
 ---
 
 ## Done
 
+- **Browser testing** — passed. Dynamic loading, controls, and presets all render correctly.
 - **WaterShut / ElecShut dropdowns** — `sandboxKeyMap` entries added; ElecShut/TimeSinceApo/ErosionSpeed had correct keys already.
 - **StartDay control type** — confirmed number input (31-item dropdown is poor UX); annotation added.
 - **ZombieRespawn missing from allowlist** — added to `zrespawn` group (distinct from `RespawnHours` number field).
