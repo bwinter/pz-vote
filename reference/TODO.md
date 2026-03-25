@@ -39,9 +39,8 @@ Confirmed in-game as a 1–31 dropdown. Sandbox.json has no `_option*` entries. 
 - Add 0.4 as a 7th loot option with a custom label
 - Store raw floats and only display the label (lossy display but lossless output)
 
-### 5. Rising preset PVP — design decision needed
-**Finding:** All presets get `ini: {}` at build time — ini always falls back to schema defaults (PVP=1). Rising has no ini overrides anywhere. Whether Rising should force PVP=0 is a product call, not verifiable from the code or Rising.lua alone.
-**If yes:** add `PRESETS.rising.ini = { PVP: 0 }` after preset construction in `loadGameFiles()`.
+### 5. ~~Rising preset PVP ini value~~ NOT A BUG
+Presets only seed sandbox settings — ini fields always start from allowlist.json defaults regardless of preset. This is correct: the whole point of the tool is that players set ini values to whatever they want. Presets are a sandbox starting point, not a full server config.
 
 ### 6. AnimalAgeModifier default index may be wrong
 **Problem:** All livestock dropdowns confirmed in-game and `_unverified` flags cleared. One open question remains: `AnimalAgeModifier` def=4 — on the 6-slot scale [Ultra Fast…Very Slow], index 4 is "Slow", not "Normal". Apocalypse is supposed to be Normal aging. Possible the Apocalypse.lua value is stored differently or the scale is 0-based in some contexts.
