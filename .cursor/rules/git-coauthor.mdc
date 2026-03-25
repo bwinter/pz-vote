@@ -1,0 +1,10 @@
+---
+description: Append Cursor co-author trailer to commits this agent makes
+alwaysApply: true
+---
+
+When creating a git commit in this project, append this trailer at the end of the commit message body (use a blank line before it):
+
+Co-authored-by: Cursor <cursoragent@cursor.com>
+
+Use a separate `-m` for the trailer if using `git commit -m` for subject and body, or include it in the final paragraph of the message. Do not invent other co-author lines unless the user asks.
