@@ -39,9 +39,9 @@ Confirmed in-game as a 1–31 dropdown. Sandbox.json has no `_option*` entries. 
 - Add 0.4 as a 7th loot option with a custom label
 - Store raw floats and only display the label (lossy display but lossless output)
 
-### 5. Rising preset PVP ini value may be wrong
-**Problem:** The Rising preset is a survivor-friendly scenario where PVP is likely off (PVP=0). The ini preset values are hardcoded in `index.html` for each preset — verify that Rising's ini section sets PVP=0. If the PRESETS object in index.html uses the same ini defaults for all presets, Rising will incorrectly show PVP=1.
-**Where:** Search `index.html` for `Rising` and check how ini preset values are built in `buildPresetValues()`.
+### 5. Rising preset PVP — design decision needed
+**Finding:** All presets get `ini: {}` at build time — ini always falls back to schema defaults (PVP=1). Rising has no ini overrides anywhere. Whether Rising should force PVP=0 is a product call, not verifiable from the code or Rising.lua alone.
+**If yes:** add `PRESETS.rising.ini = { PVP: 0 }` after preset construction in `loadGameFiles()`.
 
 ### 6. AnimalAgeModifier default index may be wrong
 **Problem:** All livestock dropdowns confirmed in-game and `_unverified` flags cleared. One open question remains: `AnimalAgeModifier` def=4 — on the 6-slot scale [Ultra Fast…Very Slow], index 4 is "Slow", not "Normal". Apocalypse is supposed to be Normal aging. Possible the Apocalypse.lua value is stored differently or the scale is 0-based in some contexts.
@@ -51,9 +51,8 @@ Confirmed in-game as a 1–31 dropdown. Sandbox.json has no `_option*` entries. 
 **Problem:** The options `["Pitch Black", "Dark", "Normal"]` in the annotations were inferred from the screenshot and prior knowledge — not from Sandbox.json. If the game uses different labels or a different order, the dropdown will show wrong text.
 **Where to look:** `reference/game_files/Sandbox.json`, search for `UndergroundDarkness`. If `Sandbox_UndergroundDarkness_option1` exists, the annotation options should match it exactly (and the annotation `options` array can be removed — detectType will find them automatically).
 
-### 8. SixMonthsLater preset not in the UI dropdown
-**Problem:** The preset file `reference/game_files/presets/SixMonthsLater.lua` is fetched and built into `PRESETS` at runtime, but `SixMonthsLater` may not be listed in the preset selector dropdown in the HTML header.
-**Where:** Search `index.html` for the preset `<select>` element — verify `SixMonthsLater` is an `<option>`.
+### 8. ~~SixMonthsLater preset not in the UI dropdown~~ FIXED
+Added `<option value="sixmonthslater">Six Months Later</option>` to all three player preset selects. Value is lowercase to match how `PRESETS` stores keys.
 
 ---
 
@@ -97,9 +96,8 @@ Confirmed in-game as a 1–31 dropdown. Sandbox.json has no `_option*` entries. 
 **Problem:** The tool infers Lua table nesting from `luaTableOf` built during `buildSchema()`. If that inference is wrong (e.g. a key appears in multiple preset tables), the output file will have keys in the wrong table or missing entirely.
 **Recommendation:** Add a comment or table to `reference/schema.md` listing which keys go into ZombieLore, ZombieConfig, MultiplierConfig, Map, Basement vs. the root table.
 
-### 16. Sandbox.json is a large file — no quick-reference for which keys exist
-**Problem:** `reference/game_files/Sandbox.json` is the ground truth for labels and enum options, but it's large and hard to scan. If a key lookup silently fails (key not found), `detectType()` falls through to `number` without warning.
-**Recommendation:** Add console.warn() in `buildSchema()` when a Sandbox.json key lookup fails, so missing/misnamed keys are visible in DevTools.
+### 16. ~~Add console.warn for missing Sandbox.json key lookups~~ FIXED
+`console.warn` added in `buildSchema()` after `detectType()`. Fires when type resolves to `number`, the key has no annotation, and `Sandbox_<key>_option1` doesn't exist — surfaces unexpected lookup failures in DevTools without spamming intentional numbers or annotated keys.
 
 ---
 

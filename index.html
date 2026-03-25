@@ -116,19 +116,19 @@ input[type=checkbox].p-check{width:14px;height:14px;cursor:pointer;}
   </div>
   <div class="ch-p">
     <div class="ch-p-row"><input class="p-input" id="p0" value="Diesel" style="flex:1;"></div>
-    <div class="ch-p-row"><select class="p-preset" id="preset0" style="flex:1;"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select></div>
+    <div class="ch-p-row"><select class="p-preset" id="preset0" style="flex:1;"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="sixmonthslater">Six Months Later</option><option value="custom">Custom</option></select></div>
     <div class="ch-p-row"><button class="btn-icon btn-icon-save btn-icon-full" id="btn-save-0" title="Save Diesel's votes to GitHub">☁️ Save</button></div>
     <div class="ch-p-row"><button class="btn-icon btn-icon-reload btn-icon-full" id="btn-reload-0" title="Reload Diesel's votes from GitHub">🔄 Reload</button></div>
   </div>
   <div class="ch-p">
     <div class="ch-p-row"><input class="p-input" id="p1" value="GunFox" style="flex:1;"></div>
-    <div class="ch-p-row"><select class="p-preset" id="preset1" style="flex:1;"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select></div>
+    <div class="ch-p-row"><select class="p-preset" id="preset1" style="flex:1;"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="sixmonthslater">Six Months Later</option><option value="custom">Custom</option></select></div>
     <div class="ch-p-row"><button class="btn-icon btn-icon-save btn-icon-full" id="btn-save-1" title="Save GunFox's votes to GitHub">☁️ Save</button></div>
     <div class="ch-p-row"><button class="btn-icon btn-icon-reload btn-icon-full" id="btn-reload-1" title="Reload GunFox's votes from GitHub">🔄 Reload</button></div>
   </div>
   <div class="ch-p">
     <div class="ch-p-row"><input class="p-input" id="p2" value="SnowCrash" style="flex:1;"></div>
-    <div class="ch-p-row"><select class="p-preset" id="preset2" style="flex:1;"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="custom">Custom</option></select></div>
+    <div class="ch-p-row"><select class="p-preset" id="preset2" style="flex:1;"><option value="">Defaults</option><option value="apocalypse">Apocalypse</option><option value="outbreak">Outbreak</option><option value="extinction">Extinction</option><option value="rising">Rising</option><option value="sixmonthslater">Six Months Later</option><option value="custom">Custom</option></select></div>
     <div class="ch-p-row"><button class="btn-icon btn-icon-save btn-icon-full" id="btn-save-2" title="Save SnowCrash's votes to GitHub">☁️ Save</button></div>
     <div class="ch-p-row"><button class="btn-icon btn-icon-reload btn-icon-full" id="btn-reload-2" title="Reload SnowCrash's votes from GitHub">🔄 Reload</button></div>
   </div>
@@ -500,6 +500,9 @@ function buildSchema(allowlist,apoFlat,sbJson){
 
         const sbKey=sandboxKeyMap[key]||key;
         const type=detectType(key,rawValue||'',sbKey,sbJson,annotations);
+        if(type==='number'&&!annotations[key]&&!sbJson['Sandbox_'+sbKey+'_option1']){
+          console.warn('buildSchema: no Sandbox.json entry for key:',key,'(tried Sandbox_'+sbKey+')');
+        }
 
         let options=[];
         if(type==='enum') options=annotations[key]?.options||getEnumOptions(sbKey,sbJson);
