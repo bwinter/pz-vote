@@ -95,7 +95,7 @@ input[type=checkbox].p-check{width:14px;height:14px;cursor:pointer;}
 .warn{color:#dcdcaa !important;}
 .info-btn{width:15px;height:15px;border-radius:50%;border:1px solid #555;background:transparent;color:var(--dim);font-size:9px;cursor:help;line-height:1;padding:0;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .info-btn:hover,.info-btn:focus-visible{border-color:#9cdcfe;color:#9cdcfe;outline:none;}
-.info-tip{display:none;position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);z-index:500;background:#1e2a35;border:1px solid #4a6478;border-radius:4px;padding:7px 10px;width:270px;font-size:11px;color:#cdd6e0;line-height:1.5;white-space:normal;font-family:'Segoe UI',system-ui,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,.7);pointer-events:none;}
+.info-tip{display:none;position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);z-index:500;background:#1e2a35;border:1px solid #4a6478;border-radius:4px;padding:7px 10px;width:270px;font-size:11px;color:#cdd6e0;line-height:1.5;white-space:pre-line;font-family:'Segoe UI',system-ui,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,.7);pointer-events:none;}
 .s-head[data-tip]:hover .info-tip,.s-head[data-tip]:focus-within .info-tip{display:block;}
 </style>
 </head>
@@ -220,11 +220,12 @@ function presetMatches(pi,pr){
   for(const fid of['ini','sandbox']){
     const psec=fid==='ini'?pr.ini:pr.sandbox;
     const f=SCHEMA.find(x=>x.id===fid); if(!f) continue;
+    const hasPresetKeys=psec&&Object.keys(psec).length>0;
     for(const g of f.groups) for(const s of g.settings){
       const pv=psec?.[s.key];
       const cur=values[pi][fid][s.key];
       if(pv!==undefined){if(Math.abs(cur-clamp(s,pv))>0.001) return false;}
-      else{if(Math.abs(cur-s.def)>0.001) return false;}
+      else if(hasPresetKeys){if(Math.abs(cur-s.def)>0.001) return false;}
     }
   }
   return true;
@@ -614,7 +615,7 @@ function buildTree(){
           sHead.dataset.tip='1';
           const ib=document.createElement('button');ib.className='info-btn';ib.textContent='ℹ';ib.type='button';
           ib.setAttribute('aria-label','Setting description');
-          const it=document.createElement('div');it.className='info-tip';it.textContent=s.tooltip;
+          const it=document.createElement('div');it.className='info-tip';it.textContent=s.tooltip.replace(/\\n/g,'\n');
           slot.appendChild(ib);sHead.appendChild(slot);sHead.appendChild(it);
         }else{
           sHead.appendChild(slot);
