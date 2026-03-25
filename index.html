@@ -520,12 +520,14 @@ function buildSchema(allowlist,apoFlat,sbJson){
         if(isNaN(def)) def=rawValue==='true'?1:0;
         if(annotations[key]?.def!==undefined) def=annotations[key].def;
 
-        group.settings.push({
+        const setting={
           key,fid:'sandbox',luaTable,
           label:sbJson['Sandbox_'+sbKey]||sbJson['Sandbox_'+key]||humanize(key),
           type,options,def,b42:g.b42||false,
           tooltip:sbJson['Sandbox_'+sbKey+'_tooltip']||sbJson['Sandbox_'+key+'_tooltip']||'',
-        });
+        };
+        setting.def=clamp(setting,setting.def);
+        group.settings.push(setting);
       }
       sbFile.groups.push(group);
     }
