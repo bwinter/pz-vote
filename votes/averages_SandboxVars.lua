@@ -1,64 +1,37 @@
 SandboxVars = {
-    VERSION = 4,
-    -- World Timeline
+    Version = 6,
     DayLength = 3,
-    StartMonth = 7,
+    StartMonth = 9,
     StartDay = 9,
     StartTime = 2,
     WaterShut = 2,
     ElecShut = 2,
-    WaterShutModifier = -1,
-    ElecShutModifier = -1,
-
-    -- Zombie Population
-    Zombies = 4,
+    WaterShutModifier = 4,
+    ElecShutModifier = 4,
+    Zombies = 3,
     Distribution = 1,
-    PopulationStartMultiplier = 1,
-    PopulationPeakMultiplier = 1.5,
-    PopulationPeakDay = 28,
-
-    -- Zombie Character
-    Speed = 2,
-    Strength = 2,
-    Toughness = 2,
-    Transmission = 1,
-    Mortality = 5,
-    Reanimate = 3,
-    Cognition = 3,
-    Memory = 2,
-    Sight = 2,
-    Hearing = 2,
-    ThumpNoChasing = false,
-    ThumpOnConstruction = true,
-    ActiveOnly = 1,
-    ZombiesDragDown = true,
-    ZombiesFenceLunge = true,
-    DisableFakeDead = 1,
-
-    -- Zombie Respawn
-    RespawnHours = 72,
-    RespawnUnseenHours = 16,
-    RespawnMultiplier = 0.1,
-
-    -- Loot by Category
-    FoodLoot = 4,
-    CannedFoodLoot = 4,
-    LiteratureLoot = 4,
-    SurvivalGearsLoot = 4,
-    MedicalLoot = 4,
-    WeaponLoot = 4,
-    RangedWeaponLoot = 4,
-    AmmoLoot = 4,
-    MechanicsLoot = 4,
-    OtherLoot = 4,
-
-    -- Loot Respawn & Cleanup
-    LootRespawn = 1,
-    SeenHoursPreventLootRespawn = 0,
-    HoursForWorldItemRemoval = 24,
-
-    -- Character & Survival
-    XpMultiplier = 1,
+    ZombieRespawn = 3,
+    FoodLootNew = 0.6,
+    CannedFoodLootNew = 0.6,
+    SkillBookLoot = 0.6,
+    RecipeResourceLoot = 0.6,
+    LiteratureLootNew = 0.6,
+    SurvivalGearsLootNew = 0.6,
+    MedicalLootNew = 0.6,
+    WeaponLootNew = 0.6,
+    RangedWeaponLootNew = 2,
+    AmmoLootNew = 0.6,
+    MechanicsLootNew = 0.6,
+    ClothingLootNew = 0.6,
+    ContainerLootNew = 0.6,
+    KeyLootNew = 0.6,
+    MediaLootNew = 0.6,
+    MementoLootNew = 0.6,
+    CookwareLootNew = 0.6,
+    MaterialLootNew = 0.6,
+    FarmingLootNew = 0.6,
+    ToolLootNew = 0.6,
+    OtherLootNew = 0.6,
     StatsDecrease = 3,
     EndRegen = 3,
     InjurySeverity = 2,
@@ -67,83 +40,108 @@ SandboxVars = {
     MultiHitZombies = false,
     RearVulnerability = 3,
     AttackBlockMovements = true,
-
-    -- Environment
     Temperature = 3,
     Rain = 3,
     NightDarkness = 2,
     NightLength = 3,
-    ErosionSpeed = 3,
-    FireSpread = true,
-    TimeSinceApo = 1,
-
-    -- Farming & Nature
-    Farming = 3,
+    ErosionSpeed = 2,
+    TimeSinceApo = 3,
     NatureAbundance = 3,
     PlantResilience = 3,
     PlantAbundance = 3,
     FoodRotSpeed = 3,
     FridgeFactor = 3,
-    CompostTime = 2,
-
-    -- Meta Events
+    FishAbundance = 2,
     Helicopter = 2,
     MetaEvent = 2,
     GeneratorSpawning = 3,
     SurvivorHouseChance = 3,
-    VehicleStoryChance = 3,
-    ZoneStoryChance = 3,
-    AnnotatedMapChance = 4,
-    Alarm = 5,
-    LockedHouses = 5,
-
-    -- Vehicles
+    AnnotatedMapChance = 3,
+    Alarm = 4,
+    LockedHouses = 4,
     CarSpawnRate = 3,
     ChanceHasGas = 1,
     InitialGas = 2,
-    FuelStationGas = 5,
+    FuelStationGasMin = 1,
+    FuelStationGasMax = 4,
     CarGasConsumption = 1,
     CarGeneralCondition = 2,
     LockedCar = 3,
-    TrafficJam = true,
-    EnableVehicles = true,
-    VehicleEasyUse = false,
-    ZombieAttractionMultiplier = 1,
     CarAlarm = 2,
-    SirenShutoffHours = 0,
-
-    -- Corpses & Blood
+    TrafficJam = true,
     HoursForCorpseRemoval = 216,
     DecayingCorpseHealthImpact = 3,
     BloodLevel = 3,
     ClothingDegradation = 3,
-
-    -- Misc & Display
     StarterKit = false,
-    AllowMiniMap = false,
-    AllowWorldMap = true,
-    MapAllKnown = false,
     Nutrition = true,
-    EnablePoisoning = true,
-    GeneratorFuelConsumption = 1,
+    EnablePoisoning = 1,
+    GeneratorFuelConsumption = 0.4,
     LightBulbLifespan = 1,
     AllowExteriorGenerator = true,
     ConstructionBonusPoints = 3,
-
-    -- [B42] Animals & Livestock
-    AnimalAgingSpeed = 3, -- B42 (verify key name)
-    MilkIncreaseSpeed = 3, -- B42 (verify key name)
-    AnimalSpawnMultiplier = 1, -- B42 (verify key name)
-    WildAnimalSpawnMultiplier = 1, -- B42 (verify key name)
-
-    -- [B42] Crafting & Resources
-    CraftingYieldMultiplier = 1, -- B42 (verify key name)
-    OreSpawnMultiplier = 1, -- B42 (verify key name)
-    BlacksmithingEnabled = true, -- B42 (verify key name)
-    PotteryEnabled = true, -- B42 (verify key name)
-
-    -- [B42] Basements & Darkness
-    BasementSpawnFrequency = 2, -- B42 (verify key name)
-    UndergroundDarkness = 2, -- B42 (verify key name)
-
+    AnimalStatsModifier = 4,
+    AnimalPregnancyTime = 4,
+    AnimalEggHatch = 4,
+    AnimalAgeModifier = 4,
+    AnimalMilkIncModifier = 4,
+    AnimalWoolIncModifier = 4,
+    AnimalRanchChance = 5,
+    AnimalGrassRegrowTime = 240,
+    AnimalMetaPredator = false,
+    AnimalMatingSeason = true,
+    AnimalSoundAttractZombies = true,
+    AnimalTrackChance = 4,
+    AnimalPathChance = 4,
+    CraftingYieldMultiplier = 1,
+    OreSpawnMultiplier = 1,
+    BlacksmithingEnabled = true,
+    PotteryEnabled = true,
+    UndergroundDarkness = 2,
+    ZombieConfig = {
+        PopulationMultiplier = 2,
+        PopulationStartMultiplier = 1,
+        PopulationPeakMultiplier = 2,
+        PopulationPeakDay = 20.33,
+        RespawnHours = 72,
+        RespawnUnseenHours = 16,
+        RespawnMultiplier = 0.23,
+        RedistributeHours = 12,
+        FollowSoundDistance = 166.67,
+        RallyGroupSize = 80,
+        RallyGroupSizeVariance = 50,
+        RallyTravelDistance = 23.33,
+        RallyGroupSeparation = 15,
+        RallyGroupRadius = 5.33,
+    },
+    ZombieLore = {
+        Speed = 3,
+        Strength = 2,
+        Toughness = 2,
+        Transmission = 1,
+        Mortality = 5,
+        Reanimate = 3,
+        Cognition = 3,
+        Memory = 2,
+        Sight = 2,
+        Hearing = 2,
+        ThumpNoChasing = 1,
+        ThumpOnConstruction = true,
+        ActiveOnly = 1,
+        ZombiesDragDown = true,
+        ZombiesFenceLunge = true,
+        DisableFakeDead = 1,
+    },
+    MultiplierConfig = {
+        Global = 1,
+        Farming = 2.33,
+    },
+    Map = {
+        AllowMiniMap = false,
+        AllowWorldMap = true,
+        MapAllKnown = false,
+    },
+    Basement = {
+        SpawnFrequency = 4,
+    },
 }
