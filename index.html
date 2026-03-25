@@ -159,7 +159,7 @@ let settingMap={}, values=[], collapsed={};
 // ─── VALUE HELPERS ────────────────────────────────────────────────────
 function nearestLootSnap(v){
   if(!LOOT_SNAPS.length) return v;
-  return LOOT_SNAPS.reduce((best,[sv])=>Math.abs(v-sv)<Math.abs(v-best)?sv:best,LOOT_SNAPS[0][0]);
+  return LOOT_SNAPS.reduce((best,[sv])=>Math.abs(v-sv)<=Math.abs(v-best)?sv:best,LOOT_SNAPS[0][0]);
 }
 function lootLabel(v){
   const snap=LOOT_SNAPS.find(([sv])=>Math.abs(v-sv)<0.001);

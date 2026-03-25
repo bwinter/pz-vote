@@ -186,6 +186,20 @@ BloodSplatLifespanDays = 0
 MaggotSpawn = 1            -- enum 1-3
 MetaKnowledge = 3          -- enum 1-3
 
+## Lua Table Nesting
+
+`buildSchema()` figures out whether each sandbox key lives in a nested Lua table by checking `luaTableHint` on the allowlist group (preferred) or falling back to the table name that appeared in `Apocalypse.lua` (via `luaTableOf`). The tool only writes keys inside the five nested tables listed below; all other sandbox settings stay at the root level.
+
+| Lua table | Allowlist group(s) | Example keys |
+|---|---|---|
+| `ZombieLore` | `Zombie Lore` (`zlore`) | `Speed`, `Strength`, `Toughness`, `Transmission`, `Mortality`, `Reanimate`, `Cognition`, `Memory`, `Sight`, `Hearing`, `ThumpNoChasing`, `ThumpOnConstruction`, `ActiveOnly`, `ZombiesDragDown`, `ZombiesFenceLunge`, `DisableFakeDead` |
+| `ZombieConfig` | `Zombie Population` (`zpop`), `Zombie Respawn` (`zrespawn`) | `Zombies`, `Distribution`, `PopulationMultiplier`, `PopulationStartMultiplier`, `PopulationPeakMultiplier`, `PopulationPeakDay`, `ZombieRespawn`, `RespawnHours`, `RespawnUnseenHours`, `RespawnMultiplier`, `RedistributeHours`, `FollowSoundDistance`, `RallyGroupSize`, `RallyGroupSizeVariance`, `RallyTravelDistance`, `RallyGroupSeparation`, `RallyGroupRadius` |
+| `MultiplierConfig` | `Character & Survival` (`char`) | `Global` (XP multiplier) |
+| `Map` | `Misc & Display` (`misc`) | `AllowMiniMap`, `AllowWorldMap`, `MapAllKnown` |
+| `Basement` | `Basements & Darkness` (`b42world`) | `SpawnFrequency` |
+
+Keys from the other groups (loot rarity, environment, meta events, etc.) have no `luaTable` entry, so they are written directly in the root `SandboxVars` table.
+
 -- Character
 StatsDecrease = 3          -- enum 1-5
 EndRegen = 3               -- enum 1-5
