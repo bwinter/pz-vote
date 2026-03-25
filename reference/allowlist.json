@@ -163,6 +163,34 @@
       "_note": "Zombie advanced 'Population Peak Day'. Number input in-game (2_zombie_2.png, value 28).",
       "type": "number", "def": 28
     },
+    "RedistributeHours": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 12.0
+    },
+    "FollowSoundDistance": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 100
+    },
+    "RallyGroupSize": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 20
+    },
+    "RallyGroupSizeVariance": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 50
+    },
+    "RallyTravelDistance": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 20
+    },
+    "RallyGroupSeparation": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 15
+    },
+    "RallyGroupRadius": {
+      "_note": "Advanced zombie setting. ZombieConfig in Lua. Default from Apocalypse.lua.",
+      "type": "number", "def": 3
+    },
 
     "AnimalStatsModifier": {
       "_note": "Livestock 'Stats Reduction Speed'. Dropdown confirmed in-game (9_livestock_3.png): Ultra Fast→Very Slow. Sandbox.json has no _option* entries.",
@@ -271,7 +299,7 @@
       {
         "id": "zrespawn", "label": "Zombie Respawn",
         "_note": "Controls whether and how fast zombies respawn. Under ZombieConfig in Lua. ZombieRespawn is the top-level preset dropdown (High/Normal/Low/None, has Sandbox.json options); RespawnHours/UnseenHours/Multiplier are advanced numeric fields shown below it in-game (2_zombie_2.png). These are DISTINCT controls — ZombieRespawn sets a named tier, the number fields give fine-grained control.",
-        "keys": ["ZombieRespawn","RespawnHours","RespawnUnseenHours","RespawnMultiplier"]
+        "keys": ["ZombieRespawn","RespawnHours","RespawnUnseenHours","RespawnMultiplier","RedistributeHours","FollowSoundDistance","RallyGroupSize","RallyGroupSizeVariance","RallyTravelDistance","RallyGroupSeparation","RallyGroupRadius"]
       },
       {
         "id": "loot", "label": "Loot Rarity",
