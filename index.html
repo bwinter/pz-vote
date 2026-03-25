@@ -315,14 +315,15 @@ function formatLua(pi,isAvg){
 
 // ─── GITHUB ───────────────────────────────────────────────────────────
 const RAW_BASE='https://raw.githubusercontent.com/bwinter/pz-vote/main/';
+const VOTES_DIR='votes/';
 const GH_API='https://api.github.com/repos/bwinter/pz-vote/contents/';
 function getToken(){return document.getElementById('gh-token').value.trim();}
 
 async function fetchPlayer(pi){
   const name=document.getElementById('p'+pi).value.trim()||('Player'+(pi+1));
   let loaded=false;
-  try{const r=await fetch(RAW_BASE+pi+'_'+name+'.ini');if(r.ok){applyParsed(pi,'ini',parseIni(await r.text()));loaded=true;}}catch(e){}
-  try{const r=await fetch(RAW_BASE+pi+'_'+name+'_SandboxVars.lua');if(r.ok){applyParsed(pi,'sandbox',parseLua(await r.text()));loaded=true;}}catch(e){}
+  try{const r=await fetch(RAW_BASE+VOTES_DIR+pi+'_'+name+'.ini');if(r.ok){applyParsed(pi,'ini',parseIni(await r.text()));loaded=true;}}catch(e){}
+  try{const r=await fetch(RAW_BASE+VOTES_DIR+pi+'_'+name+'_SandboxVars.lua');if(r.ok){applyParsed(pi,'sandbox',parseLua(await r.text()));loaded=true;}}catch(e){}
   return loaded;
 }
 async function loadAllFromGitHub(){
@@ -362,10 +363,10 @@ async function commitPlayer(pi){
   const n=getNames();
   setStatus('Saving '+n[pi]+'...');
   try{
-    await ghPut(pi+'_'+n[pi]+'.ini',formatIni(pi,false),'Update '+n[pi]+' config');
-    await ghPut(pi+'_'+n[pi]+'_SandboxVars.lua',formatLua(pi,false),'Update '+n[pi]+' sandbox');
-    await ghPut('averages.ini',formatIni(null,true),'Update averages');
-    await ghPut('averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
+    await ghPut(VOTES_DIR+pi+'_'+n[pi]+'.ini',formatIni(pi,false),'Update '+n[pi]+' config');
+    await ghPut(VOTES_DIR+pi+'_'+n[pi]+'_SandboxVars.lua',formatLua(pi,false),'Update '+n[pi]+' sandbox');
+    await ghPut(VOTES_DIR+'averages.ini',formatIni(null,true),'Update averages');
+    await ghPut(VOTES_DIR+'averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
     setStatus('Saved '+n[pi]+' + averages to GitHub','save-ok');
   }catch(e){setStatus('Save failed: '+e.message,'warn');}
 }
@@ -376,11 +377,11 @@ async function commitAll(){
   setStatus('Saving all files...');
   try{
     for(let i=0;i<3;i++){
-      await ghPut(i+'_'+n[i]+'.ini',formatIni(i,false),'Update '+n[i]+' config');
-      await ghPut(i+'_'+n[i]+'_SandboxVars.lua',formatLua(i,false),'Update '+n[i]+' sandbox');
+      await ghPut(VOTES_DIR+i+'_'+n[i]+'.ini',formatIni(i,false),'Update '+n[i]+' config');
+      await ghPut(VOTES_DIR+i+'_'+n[i]+'_SandboxVars.lua',formatLua(i,false),'Update '+n[i]+' sandbox');
     }
-    await ghPut('averages.ini',formatIni(null,true),'Update averages');
-    await ghPut('averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
+    await ghPut(VOTES_DIR+'averages.ini',formatIni(null,true),'Update averages');
+    await ghPut(VOTES_DIR+'averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
     setStatus('Saved 8 files to GitHub','save-ok');
   }catch(e){setStatus('Save failed: '+e.message,'warn');}
 }
