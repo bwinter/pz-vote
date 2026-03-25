@@ -340,14 +340,18 @@ async function reloadPlayer(pi){
   const n=getNames();
   setStatus(loaded?'Loaded '+n[pi]+' from GitHub — '+new Date().toLocaleTimeString():'No saved config for '+n[pi]+' on GitHub');
 }
-async function ghSha(path){
-  try{const r=await fetch(GH_API+path,{headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json'}});if(r.ok){const d=await r.json();return d.sha;}}catch(e){}
+function encodeContent(content){return btoa(unescape(encodeURIComponent(content)));}
+function normalizeBase64(str){return (str||'').replace(/\\s+/g,'');}
+async function ghFile(path){
+  try{
+    const r=await fetch(GH_API+path,{headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json'}});
+    if(r.ok) return await r.json();
+  }catch(e){}
   return null;
 }
-async function ghPut(path,content,msg){
-  const sha=await ghSha(path);
-  const body={message:msg,content:btoa(unescape(encodeURIComponent(content)))};
-  if(sha) body.sha=sha;
+async function ghPut(path,content,msg,existingSha){
+  const body={message:msg,content:encodeContent(content)};
+  if(existingSha) body.sha=existingSha;
   const r=await fetch(GH_API+path,{method:'PUT',headers:{Authorization:'token '+getToken(),Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||r.statusText);}
 }
@@ -359,15 +363,42 @@ function noToken(){
   setStatus('Add your GitHub token in Settings to enable saving','warn');
   return true;
 }
+async function resolveFileUpdate(path,content){
+  const meta=await ghFile(path);
+  const encoded=encodeContent(content);
+  const remote=meta?.content?normalizeBase64(meta.content):null;
+  return {changed:!meta||remote!==encoded,sha:meta?.sha};
+}
+
 async function commitPlayer(pi){
   if(!getToken()) return noToken();
   const n=getNames();
   setStatus('Saving '+n[pi]+'...');
   try{
-    await ghPut(VOTES_DIR+pi+'_'+n[pi]+'.ini',formatIni(pi,false),'Update '+n[pi]+' config');
-    await ghPut(VOTES_DIR+pi+'_'+n[pi]+'_SandboxVars.lua',formatLua(pi,false),'Update '+n[pi]+' sandbox');
-    await ghPut(VOTES_DIR+'averages.ini',formatIni(null,true),'Update averages');
-    await ghPut(VOTES_DIR+'averages_SandboxVars.lua',formatLua(null,true),'Update averages sandbox');
+    const iniContent=formatIni(pi,false);
+    const luaContent=formatLua(pi,false);
+    const playerFiles=[
+      {path:VOTES_DIR+pi+'_'+n[pi]+'.ini',content:iniContent,msg:'Update '+n[pi]+' config'},
+      {path:VOTES_DIR+pi+'_'+n[pi]+'_SandboxVars.lua',content:luaContent,msg:'Update '+n[pi]+' sandbox'},
+    ];
+    const playerResults=[];
+    for(const file of playerFiles) playerResults.push({...file,...await resolveFileUpdate(file.path,file.content)});
+    const playerChanged=playerResults.some(r=>r.changed);
+    if(!playerChanged){
+      setStatus('No changes for '+n[pi]+' — skipping GitHub update','info');
+      return;
+    }
+    for(const file of playerResults) if(file.changed) await ghPut(file.path,file.content,file.msg,file.sha);
+    const avgIni=formatIni(null,true);
+    const avgLua=formatLua(null,true);
+    const averages=[
+      {path:VOTES_DIR+'averages.ini',content:avgIni,msg:'Update averages'},
+      {path:VOTES_DIR+'averages_SandboxVars.lua',content:avgLua,msg:'Update averages sandbox'},
+    ];
+    for(const avg of averages){
+      const meta=await resolveFileUpdate(avg.path,avg.content);
+      if(meta.changed) await ghPut(avg.path,avg.content,avg.msg,meta.sha);
+    }
     setStatus('Saved '+n[pi]+' + averages to GitHub','save-ok');
   }catch(e){setStatus('Save failed: '+e.message,'warn');}
 }
