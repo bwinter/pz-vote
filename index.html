@@ -67,7 +67,15 @@ select option{background:#2d2d2d;color:var(--text);}
 .lbl-file{font-family:'Consolas','Cascadia Code',monospace;color:var(--file);font-size:13px;font-weight:700;padding:0 4px;user-select:none;}
 .lbl-group{font-family:'Consolas','Cascadia Code',monospace;color:var(--group);font-size:12px;padding:0 4px;user-select:none;}
 .b42-tag{font-size:9px;color:#ce9178;opacity:.8;font-style:italic;margin-left:5px;}
-.s-key{width:var(--key-w);flex-shrink:0;font-family:'Consolas','Cascadia Code',monospace;font-size:12px;color:var(--key);padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.s-head{width:var(--key-offset);flex-shrink:0;display:flex;align-items:center;min-height:var(--row-h);min-width:0;position:relative;}
+.s-head[data-tip]{cursor:help}
+.s-head>.t-indent{flex-shrink:0}
+.s-head>.t-icon{flex-shrink:0}
+.s-head>.s-key{flex:1;min-width:0;width:auto;max-width:none}
+.s-key{font-family:'Consolas','Cascadia Code',monospace;font-size:12px;color:var(--key);padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.s-info-slot{width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.info-btn{opacity:.55}
+.s-head[data-tip]:hover .info-btn,.s-head[data-tip]:focus-within .info-btn{opacity:1}
 .s-key.b42{color:#ce9178;}
 .sliders-wrap{display:flex;flex:1;align-items:center;min-width:0;}
 .p-col{display:flex;align-items:center;flex:1;min-width:100px;padding:0 5px;gap:4px;border-left:1px solid var(--border2);}
@@ -86,11 +94,10 @@ input[type=checkbox].p-check{width:14px;height:14px;cursor:pointer;}
 #status{font-size:11px;color:var(--dim);padding:3px 10px;background:var(--bg2);border-bottom:1px solid var(--border2);}
 .save-ok{color:#4ec9b0 !important;}
 .warn{color:#dcdcaa !important;}
-.info-wrap{position:relative;display:inline-flex;flex-shrink:0;}
-.info-btn{width:15px;height:15px;border-radius:50%;border:1px solid #555;background:transparent;color:var(--dim);font-size:9px;cursor:pointer;line-height:1;padding:0;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.info-btn:hover{border-color:#9cdcfe;color:#9cdcfe;}
-.info-tip{display:none;position:absolute;left:18px;top:-2px;z-index:500;background:#1e2a35;border:1px solid #4a6478;border-radius:4px;padding:7px 10px;width:270px;font-size:11px;color:#cdd6e0;line-height:1.5;white-space:normal;font-family:'Segoe UI',system-ui,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,.7);pointer-events:none;}
-.info-wrap:hover .info-tip{display:block;}
+.info-btn{width:15px;height:15px;border-radius:50%;border:1px solid #555;background:transparent;color:var(--dim);font-size:9px;cursor:help;line-height:1;padding:0;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-btn:hover,.info-btn:focus-visible{border-color:#9cdcfe;color:#9cdcfe;outline:none;}
+.info-tip{display:none;position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);z-index:500;background:#1e2a35;border:1px solid #4a6478;border-radius:4px;padding:7px 10px;width:270px;font-size:11px;color:#cdd6e0;line-height:1.5;white-space:normal;font-family:'Segoe UI',system-ui,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,.7);pointer-events:none;}
+.s-head[data-tip]:hover .info-tip,.s-head[data-tip]:focus-within .info-tip{display:block;}
 </style>
 </head>
 <body>
@@ -600,13 +607,19 @@ function buildTree(){
         const sIco=document.createElement('span');sIco.className='t-icon';sIco.textContent='·';
         const sKey=document.createElement('span');sKey.className='s-key'+(s.b42?' b42':'');
         sKey.textContent=s.key;sKey.title=(s.b42?'[B42] ':'')+s.label;
-        sRow.append(mkI(),mkI(),mkI(),sIco,sKey);
+        const sHead=document.createElement('div');sHead.className='s-head';
+        sHead.append(mkI(),mkI(),mkI(),sIco,sKey);
+        const slot=document.createElement('span');slot.className='s-info-slot';
         if(s.tooltip){
-          const iw=document.createElement('span');iw.className='info-wrap';
+          sHead.dataset.tip='1';
           const ib=document.createElement('button');ib.className='info-btn';ib.textContent='ℹ';ib.type='button';
+          ib.setAttribute('aria-label','Setting description');
           const it=document.createElement('div');it.className='info-tip';it.textContent=s.tooltip;
-          iw.append(ib,it);sRow.appendChild(iw);
+          slot.appendChild(ib);sHead.appendChild(slot);sHead.appendChild(it);
+        }else{
+          sHead.appendChild(slot);
         }
+        sRow.appendChild(sHead);
         const wrap=document.createElement('div');wrap.className='sliders-wrap';
         const aid='avg_'+f.id+'_'+s.key;
         for(let p=0;p<3;p++){
