@@ -574,7 +574,7 @@ function makeControl(s,cv,p){
 function buildTree(){
   const tree=document.getElementById('tree');tree.innerHTML='';
   for(const f of SCHEMA){
-    const fk='file_'+f.id;if(collapsed[fk]===undefined) collapsed[fk]=false;
+    const fk='file_'+f.id;if(collapsed[fk]===undefined) collapsed[fk]=true;
     const fDiv=document.createElement('div');
     const fRow=document.createElement('div');fRow.className='t-row';
     const fIco=document.createElement('span');fIco.className='t-icon';fIco.id='ico_'+fk;fIco.textContent=collapsed[fk]?'▶':'▼';
@@ -591,7 +591,7 @@ function buildTree(){
     fDiv.append(fRow,fCh);
 
     for(const g of f.groups){
-      const gk='grp_'+f.id+'_'+g.id;if(collapsed[gk]===undefined) collapsed[gk]=false;
+      const gk='grp_'+f.id+'_'+g.id;if(collapsed[gk]===undefined) collapsed[gk]=true;
       const gDiv=document.createElement('div');
       const gRow=document.createElement('div');gRow.className='t-row';
       const gIco=document.createElement('span');gIco.className='t-icon';gIco.id='ico_'+gk;gIco.textContent=collapsed[gk]?'▶':'▼';
