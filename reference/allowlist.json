@@ -23,28 +23,6 @@
   "annotations": {
     "_note": "Explicit type/default overrides for keys that are missing from Apocalypse.lua (B42-new) or whose type can't be reliably detected. Without these, detectType() would fall through to 'number'. All enum options here confirmed in-game unless noted otherwise.",
 
-    "UndergroundDarkness": {
-      "_note": "B42 basement darkness. Enum, 3 levels. Not in any preset .lua file. Options from in-game observation — Sandbox.json has no _option* for this key.",
-      "type": "enum", "def": 2,
-      "options": ["Pitch Black", "Dark", "Normal"]
-    },
-    "CraftingYieldMultiplier": {
-      "_note": "B42 crafting yield multiplier. Float. Absent from Apocalypse.lua.",
-      "type": "number", "def": 1.0
-    },
-    "OreSpawnMultiplier": {
-      "_note": "B42 ore spawn multiplier. Float. Absent from Apocalypse.lua.",
-      "type": "number", "def": 1.0
-    },
-    "BlacksmithingEnabled": {
-      "_note": "B42 blacksmithing toggle. Bool. Absent from Apocalypse.lua.",
-      "type": "bool", "def": 1
-    },
-    "PotteryEnabled": {
-      "_note": "B42 pottery toggle. Bool. Absent from Apocalypse.lua.",
-      "type": "bool", "def": 1
-    },
-
     "StartDay": {
       "_note": "1–31 dropdown in-game (1_time_2.png). Sandbox.json has no _option* entries. Rendered as number input — 31-item dropdown is poor UX for voting.",
       "type": "number", "def": 9
@@ -347,14 +325,9 @@
         "keys": ["AnimalStatsModifier","AnimalPregnancyTime","AnimalEggHatch","AnimalAgeModifier","AnimalMilkIncModifier","AnimalWoolIncModifier","AnimalRanchChance","AnimalGrassRegrowTime","AnimalMetaPredator","AnimalMatingSeason","AnimalSoundAttractZombies","AnimalTrackChance","AnimalPathChance"]
       },
       {
-        "id": "b42craft", "label": "Crafting & Resources", "b42": true,
-        "_note": "B42-new crafting/resource settings. These 4 keys are absent from Apocalypse.lua (B42-only), so their type and default come entirely from the annotations block above rather than game files.",
-        "keys": ["CraftingYieldMultiplier","OreSpawnMultiplier","BlacksmithingEnabled","PotteryEnabled"]
-      },
-      {
         "id": "b42world", "label": "Basements & Darkness", "b42": true,
-        "_note": "B42 basement-related settings. SpawnFrequency is under the Basement nested table in the Lua output — its sandboxKeyMap entry redirects the Sandbox.json lookup to BasementSpawnFrequency. UndergroundDarkness has no Apocalypse.lua entry, so it's fully defined in annotations.",
-        "keys": ["SpawnFrequency","UndergroundDarkness"]
+        "_note": "B42 basement settings. SpawnFrequency lives under the Basement nested table in Lua output — sandboxKeyMap redirects the Sandbox.json lookup to BasementSpawnFrequency.",
+        "keys": ["SpawnFrequency"]
       }
     ]
   }

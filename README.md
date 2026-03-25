@@ -38,7 +38,7 @@ Matches the PZ in-game sandbox UI:
 |------|---------|
 | Boolean | Checkbox |
 | Enum (fixed options) | `<select>` dropdown |
-| Loot rarity | `<select>` — Insane Rare / Extremely Rare / Rare / Normal / Common / Abundant |
+| Loot rarity | `<select>` — Insane / Extremely Rare / Rare / Normal / Common / Abundant |
 | Number | `<input type="number">` |
 
 ## Covered settings
@@ -55,29 +55,4 @@ hardcoded values in `index.html`.
 
 ## Reference materials
 
-`reference/` contains the authoritative B42 game data used at runtime and for maintenance.
-
-### `reference/game_files/`
-
-| File/folder | Purpose |
-|-------------|---------|
-| `Sandbox.json` | **Key authority.** Display names, enum options, tooltips for every SandboxVars key. |
-| `presets/` | Real B42 preset `.lua` files — ground truth for key names, nested table structure, defaults, and valid values. |
-| `server_ini/` | Server `.ini` preset `.cfg` files — reference for server.ini keys and valid values. |
-| `server_output/` | Live server output from an Apocalypse run — used to verify defaults. |
-| `screenshots/` | 14 in-game sandbox menu screenshots (B42 unstable) used to verify control types and option counts. |
-
-### `reference/allowlist.json`
-
-The only hand-authored config. Controls which keys appear in the UI, B42 annotations
-(display overrides, enum option labels), ini group definitions, and the `sandboxKeyMap`
-for keys whose Lua name differs from their `Sandbox.json` lookup key.
-
-### `reference/schema.md`
-
-Complete B42 SandboxVars key reference — all key names, types, defaults,
-nested table groups, loot float scale, and preset comparison table.
-
-### `reference/TODO.md`
-
-Open issues and future feature ideas.
+`reference/` contains B42 game data used at runtime (`game_files/Sandbox.json`, preset `.lua` files, screenshots) and maintenance files (`allowlist.json`, `schema.md`, `TODO.md`). `allowlist.json` is the only hand-authored config — it controls which keys appear in the UI.

@@ -136,14 +136,7 @@ SandboxVars = {
     AnimalSpawnMultiplier = 1, -- B42 (verify key name)
     WildAnimalSpawnMultiplier = 1, -- B42 (verify key name)
 
-    -- [B42] Crafting & Resources
-    CraftingYieldMultiplier = 1, -- B42 (verify key name)
-    OreSpawnMultiplier = 1, -- B42 (verify key name)
-    BlacksmithingEnabled = true, -- B42 (verify key name)
-    PotteryEnabled = true, -- B42 (verify key name)
-
     -- [B42] Basements & Darkness
     BasementSpawnFrequency = 2, -- B42 (verify key name)
-    UndergroundDarkness = 2, -- B42 (verify key name)
 
 }
