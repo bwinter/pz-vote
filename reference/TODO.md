@@ -56,5 +56,7 @@ If the server has RCON or a file API, push the generated SandboxVars.lua directl
 - **Preset detection broken by ini values** — `presetMatches` was requiring all ini keys to equal defaults (since `pr.ini={}` empty). Fixed: skip non-preset check when preset section has no keys.
 - **Tooltip `\n` rendering literally** — Sandbox.json uses escaped `\n`. Fixed with `.replace(/\\n/g,'\n')` + `white-space:pre-line`.
 - **KeyLootNew snap** — `nearestLootSnap` changed `<` to `<=` so ties round up. `0.4` now snaps to `0.6` (Rare), matching the PZ game UI.
-- **UndergroundDarkness enum** — verified: key is absent from Sandbox.json entirely. Hardcoded annotation `["Pitch Black", "Dark", "Normal"]` is the only source; kept as-is.
+- **UndergroundDarkness enum** — removed entirely from allowlist.json. Key is absent from Sandbox.json and from all real game preset files — it was a fabricated annotation with no game-file backing.
+- **Fabricated B42 keys purged** — CraftingYieldMultiplier, OreSpawnMultiplier, BlacksmithingEnabled, PotteryEnabled were agent-hallucinated; none appear in any real game file. Removed from allowlist.json, the b42craft group, and all votes files.
 - **Lua table nesting** — documented in `reference/schema.md` § Lua Table Nesting.
+- **Preset dropdown reverts to "custom" after reload** — `s.def` was raw unclamped value from Apocalypse.lua; clamped values loaded from file didn't match. Fixed: clamp `s.def` at schema build time in `buildSchema` (index.html).
