@@ -60,3 +60,4 @@ If the server has RCON or a file API, push the generated SandboxVars.lua directl
 - **Fabricated B42 keys purged** — CraftingYieldMultiplier, OreSpawnMultiplier, BlacksmithingEnabled, PotteryEnabled were agent-hallucinated; none appear in any real game file. Removed from allowlist.json, the b42craft group, and all votes files.
 - **Lua table nesting** — documented in `reference/schema.md` § Lua Table Nesting.
 - **Preset dropdown reverts to "custom" after reload** — `s.def` was raw unclamped value from Apocalypse.lua; clamped values loaded from file didn't match. Fixed: clamp `s.def` at schema build time in `buildSchema` (index.html).
+- **Empty commits on unchanged save** — `commitPlayer` was PUT-ing files regardless of content. Fixed: `resolveFileUpdate` fetches existing GitHub file, compares base64 content; PUT skipped if unchanged. Averages files checked independently.
